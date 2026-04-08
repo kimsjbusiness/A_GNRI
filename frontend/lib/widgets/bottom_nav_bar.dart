@@ -72,7 +72,6 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color color =
         selected ? const Color(0xFF111111) : const Color(0xFF8A8A95);
-
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
