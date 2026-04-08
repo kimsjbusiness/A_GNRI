@@ -1,178 +1,268 @@
 import 'package:flutter/material.dart';
-import 'archive_screen.dart';
-import 'settings_screen.dart';
+import '../widgets/bottom_nav_bar.dart';
+import '../core/utils.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('2026. 04. 06'),
-        actions: [
-          // 1. 상태 표시 칩 (디자인 우측 상단)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.green[100],
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text(
-              '밝음',
-              style: TextStyle(
-                color: Colors.green,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
-            ),
-          ),
-          // 2. 다크모드 아이콘
-          IconButton(
-            icon: const Icon(Icons.dark_mode_outlined, size: 22),
-            onPressed: () => print('다크모드 클릭'),
-          ),
-          // 3. 알림 아이콘
-          IconButton(
-            icon: const Icon(Icons.notifications_none, size: 22),
-            onPressed: () => print('알림 클릭'),
-          ),
-          // 4. 설정 아이콘
-          IconButton(
-            icon: const Icon(Icons.settings_outlined, size: 22),
-            onPressed: () => print('설정 클릭'),
-          ),
-          const SizedBox(width: 8),
-        ],
+    final List<NewsCardData> cards = [
+      NewsCardData(
+        country: '브라질',
+        category: '환경',
+        title: '아마존 산림 복원 프로젝트, 100만 그루 나무 식재 완료',
+        summary:
+            '브라질 정부와 환경 단체들이 추진한 아마존 산림 복원 프로젝트가 첫 번째 이정표를 달성했습니다. 향후 10년간 1억 그루를 추가로 심을 계획입니다.',
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+      NewsCardData(
+        country: '브라질',
+        category: '환경',
+        title: '아마존 산림 복원 프로젝트, 100만 그루 나무 식재 완료',
+        summary:
+            '브라질 정부와 환경 단체들이 추진한 아마존 산림 복원 프로젝트가 첫 번째 이정표를 달성했습니다. 향후 10년간 1억 그루를 추가로 심을 계획입니다.',
+      ),
+    ];
+
+    return Scaffold(
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 상단 탭 버튼 (1면, 2면, 3면)
-            Row(
-              children: [
-                _buildTabButton('1면', true),
-                _buildTabButton('2면', false),
-                _buildTabButton('3면', false),
-              ],
-            ),
-            const SizedBox(height: 20),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const _HeaderSection(),
+                    const SizedBox(height: 20),
+                    const _DateSection(),
+                    const SizedBox(height: 18),
+                    const _PageTabBar(),
+                    const SizedBox(height: 18),
 
-            // 뉴스 카드 (Imagen 3 생성 이미지 공간 포함)
-            _buildNewsCard(),
+                    ...cards.map((card) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: NewsCard(data: card),
+                      );
+                    }),
 
-            const SizedBox(height: 24),
-
-            // 오늘의 주요 뉴스 제목
-            const Text(
-              '오늘의 주요 뉴스',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-
-            // 요약 텍스트 컨테이너 (Gemini API 결과물 자리)
-            Container(
-              padding: const EdgeInsets.all(20),
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Text(
-                'MMR 기법으로 요약된 오늘의 핵심 뉴스 내용이 여기에 들어갑니다. '
-                '전세계 15개국에서 수집된 정보를 바탕으로 가장 중요한 흐름을 정리해 드립니다. '
-                '람다값 조절을 통해 다양성이 확보된 뉴스들입니다.',
-                style: TextStyle(
-                  fontSize: 15,
-                  height: 1.6,
-                  color: Colors.black87,
+                    const SizedBox(height: 4),
+                    const MainNewsSection(),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 30),
+            const BottomNavBar(currentIndex: 0),
           ],
         ),
       ),
-
-      // 하단 네비게이션 바
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.description), label: '리포트'),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: '기록'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: '설정'),
-        ],
-      ),
     );
   }
+}
 
-  // 뉴스 카드 위젯 함수
-  Widget _buildNewsCard() {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
+class _HeaderSection extends StatelessWidget {
+  const _HeaderSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: const Color(0xFF050A1A),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Center(child: Text('🌎')),
+        ),
+        const SizedBox(width: 12),
+        const Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 이미지 placeholder (나중에 실제 Imagen 3 이미지 URL 연동)
-              Container(
-                height: 220,
-                width: double.infinity,
-                color: Colors.grey[200],
-                child: const Icon(
-                  Icons.image_outlined,
-                  size: 40,
-                  color: Colors.grey,
+              Text(
+                'Global News Report',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+              ),
+              SizedBox(height: 2),
+              Text(
+                '전세계 통합 뉴스 & 경제 리포트',
+                style: TextStyle(fontSize: 13, color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+        const Icon(Icons.notifications_none),
+        const SizedBox(width: 8),
+        const Icon(Icons.dark_mode_outlined),
+        const SizedBox(width: 8),
+        const Icon(Icons.settings_outlined),
+      ],
+    );
+  }
+}
+
+class _DateSection extends StatelessWidget {
+  const _DateSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                formatDateWithDay(now), // 🔥 utils 사용
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-              // 하단 국가/카테고리 라벨
-              Positioned(
-                bottom: 12,
-                left: 12,
-                child: Row(
-                  children: [
-                    _buildLabel('브라질', Colors.black),
-                    const SizedBox(width: 8),
-                    _buildLabel('환경', Colors.grey[700]!),
-                  ],
+              const SizedBox(height: 4),
+              const Text(
+                '글로벌 뉴스 & 경제 리포트',
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color(0xFFE7F8EC),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: const Row(
+            children: [
+              Icon(Icons.trending_up, size: 16, color: Colors.green),
+              SizedBox(width: 6),
+              Text(
+                '밝음',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.green,
                 ),
               ),
             ],
           ),
-          const Padding(
-            padding: EdgeInsets.all(16),
+        ),
+      ],
+    );
+  }
+}
+
+class _PageTabBar extends StatelessWidget {
+  const _PageTabBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 42,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.grey[300],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: const [
+          Expanded(child: _TabItem(title: '1면', isSelected: true)),
+          Expanded(child: _TabItem(title: '2면', isSelected: false)),
+          Expanded(child: _TabItem(title: '3면', isSelected: false)),
+        ],
+      ),
+    );
+  }
+}
+
+class _TabItem extends StatelessWidget {
+  final String title;
+  final bool isSelected;
+
+  const _TabItem({
+    required this.title,
+    required this.isSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isSelected ? Colors.white : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Center(
+        child: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+}
+
+class NewsCardData {
+  final String country;
+  final String category;
+  final String title;
+  final String summary;
+
+  NewsCardData({
+    required this.country,
+    required this.category,
+    required this.title,
+    required this.summary,
+  });
+}
+
+class NewsCard extends StatelessWidget {
+  final NewsCardData data;
+
+  const NewsCard({super.key, required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 200,
+            decoration: BoxDecoration(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(18)),
+              color: Colors.grey[300],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '아마존 산림 복원 프로젝트: 새로운 희망',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  '최근 발표된 보고서에 따르면 아마존 지역의 재조림 사업이 예상보다 빠른 속도로 진행되고 있으며, 생태계 회복에 긍정적인 영향을 미치고 있습니다.',
-                  style: TextStyle(
-                    color: Colors.black54,
-                    fontSize: 14,
-                    height: 1.4,
+                  data.title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  data.summary,
+                  style: const TextStyle(color: Colors.grey),
                 ),
               ],
             ),
@@ -181,42 +271,33 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  // 공통 라벨 (Chip) 위젯
-  Widget _buildLabel(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
+class MainNewsSection extends StatelessWidget {
+  const MainNewsSection({super.key});
 
-  // 상단 탭 버튼 위젯
-  Widget _buildTabButton(String label, bool isActive) {
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(right: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isActive ? Colors.black : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: isActive ? null : Border.all(color: Colors.grey[300]!),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isActive ? Colors.white : Colors.grey,
-          fontWeight: FontWeight.bold,
-        ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '오늘의 주요 뉴스',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 16),
+          Text('글로벌 기후 정상회의에서 15개국이 탄소 감축에 합의했습니다.'),
+          SizedBox(height: 10),
+          Text('아시아 경제 회복세가 가속화되고 있습니다.'),
+          SizedBox(height: 10),
+          Text('AI 투자 증가가 시장을 이끌고 있습니다.'),
+        ],
       ),
     );
   }
