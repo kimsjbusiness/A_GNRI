@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../screens/home_screen.dart';
+import '../screens/archive_screen.dart';
+import '../screens/settings_screen.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -8,11 +11,37 @@ class BottomNavBar extends StatelessWidget {
     required this.currentIndex,
   });
 
-  static const _routes = ['/', '/archive', '/settings'];
-
   void _onTap(BuildContext context, int index) {
     if (index == currentIndex) return;
-    Navigator.pushReplacementNamed(context, _routes[index]);
+
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const HomeScreen(),
+          ),
+        );
+        break;
+
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const ArchiveScreen(),
+          ),
+        );
+        break;
+
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const SettingsScreen(),
+          ),
+        );
+        break;
+    }
   }
 
   @override
@@ -20,7 +49,7 @@ class BottomNavBar extends StatelessWidget {
     return Container(
       height: 86,
       decoration: const BoxDecoration(
-        color: Color(0xFFF5F5F7),
+        color: Color(0xFFF6F6F8),
         border: Border(
           top: BorderSide(
             color: Color(0xFFE3E3E8),
@@ -70,27 +99,31 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color color =
+    final color =
         selected ? const Color(0xFF111111) : const Color(0xFF8A8A95);
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                color: color,
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: SizedBox(
+          width: 72,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: color, size: 22),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  color: color,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
