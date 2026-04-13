@@ -5,30 +5,28 @@ import '../widgets/bottom_nav_bar.dart';
 class ArchiveScreen extends StatelessWidget {
   const ArchiveScreen({super.key});
 
-  static const List<Map<String, dynamic>> _mockReports = [
+  static const List<Map<String, dynamic>> _mockInsights = [
     {
       'date': '2026년 4월 1일',
       'mood': '밝음',
       'moodType': 'bright',
-      'tags': ['친환경 & AI 기술'],
+      'tags': ['친환경 에너지', '반도체'],
       'summary':
-          '글로벌 기후 정상회의에서 15개국이 2030년까지 탄소 배출 50% 감축에 합의했습니다. 미국과 중국은 신재생 에너지 협력 강화를 발표했으며, EU는 탄소국경세 시행을 앞당기기로 결정했습니다.',
+          '글로벌 기후 정상회의에서 15개국이 탄소 배출 감축에 합의하며 친환경 정책 기대감이 높아졌고, 아시아 태평양 지역의 경기 회복과 한국 반도체 수출 증가가 함께 나타나며 시장 전반의 투자 심리가 개선되고 있습니다.',
+      'detail':
+          '탄소 감축 정책 강화와 반도체 업황 회복이 동시에 나타나며 관련 테마의 유동성이 커지고 있습니다.',
+      'keywords': ['탄소감축', '친환경', '반도체', '경제회복'],
     },
     {
       'date': '2026년 3월 31일',
-      'mood': '어두움',
-      'moodType': 'dark',
-      'tags': ['방위주 & 에너지'],
+      'mood': '밝음',
+      'moodType': 'bright',
+      'tags': ['친환경 에너지', '반도체'],
       'summary':
-          '중동 지역에서 긴장이 고조되고 있습니다. 석유 수출국들은 생산량 조정을 논의 중이며, 국제 유가는 배럴당 5달러 상승했습니다. 유럽 증시는 에너지 우려로 하락세를 보였습니다. 미국 연방준',
-    },
-    {
-      'date': '2026년 3월 30일',
-      'mood': '보통',
-      'moodType': 'neutral',
-      'tags': ['핀테크 & 물류'],
-      'summary':
-          'G7 국가들이 디지털 화폐 협력 체계 구축에 합의했습니다. 중앙은행 디지털화폐(CBDC) 표준화 작업이 시작되며, 국제 결제 시스템의 혁신이 예상됩니다. 글로벌 공급망이 안정화되고 있습',
+          '글로벌 기후 정상회의에서 15개국이 탄소 배출 감축에 합의하며 친환경 정책 기대감이 높아졌고, 아시아 태평양 지역의 경기 회복과 한국 반도체 수출 증가가 함께 나타나며 시장 전반의 투자 심리가 개선되고 있습니다.',
+      'detail':
+          '탄소 감축 정책 강화와 반도체 업황 회복이 동시에 나타나며 관련 테마의 유동성이 커지고 있습니다.',
+      'keywords': ['탄소감축', '친환경', '반도체', '경제회복'],
     },
   ];
 
@@ -80,7 +78,7 @@ class ArchiveScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      '과거 리포트',
+                      '시장 인사이트',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
@@ -88,17 +86,109 @@ class ArchiveScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      '지난 리포트를 다시 확인하세요',
+                      '현재 시장의 분위기와 주요 테마를 확인하세요',
                       style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                     const SizedBox(height: 20),
-                    ...List.generate(_mockReports.length, (i) {
-                      final report = _mockReports[i];
-                      final moodType = report['moodType'] as String;
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _moodBgColor('bright'),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      _moodIcon('bright'),
+                                      size: 12,
+                                      color: _moodColor('bright'),
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      '밝음',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: _moodColor('bright'),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              ...['친환경 에너지', '반도체'].map(
+                                (tag) => Container(
+                                  margin: const EdgeInsets.only(right: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade100,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    tag,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            '현재 시장의 분위기는 밝으며, 유동성이 높다고 판단되는 테마는 "친환경 에너지"와 "반도체" 입니다.',
+                            style: TextStyle(fontSize: 13, color: Colors.black87),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            '글로벌 기후 정상회의에서 15개국이 탄소 배출 감축에 합의하며 친환경 정책 기대감이 높아졌고, 아시아 태평양 지역의 경기 회복과 한국 반도체 수출 증가가 함께 나타나며 시장 전반의 투자 심리가 개선되고 있습니다.',
+                            style: TextStyle(fontSize: 13, color: Colors.black87, height: 1.4),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            '탄소 감축 정책 강화와 반도체 업황 회복이 동시에 나타나며 관련 테마의 유동성이 커지고 있습니다.',
+                            style: TextStyle(fontSize: 13, color: Colors.black54),
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            children: ['탄소감축', '친환경', '반도체', '경제회복'].map(
+                              (keyword) => Chip(
+                                label: Text(keyword),
+                              ),
+                            ).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ...List.generate(_mockInsights.length, (i) {
+                      final insight = _mockInsights[i];
+                      final moodType = insight['moodType'] as String;
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
-                        child: _ArchiveCard(
-                          report: report,
+                        child: _InsightCard(
+                          insight: insight,
                           moodColor: _moodColor(moodType),
                           moodBgColor: _moodBgColor(moodType),
                           moodIcon: _moodIcon(moodType),
@@ -117,14 +207,14 @@ class ArchiveScreen extends StatelessWidget {
   }
 }
 
-class _ArchiveCard extends StatelessWidget {
-  final Map<String, dynamic> report;
+class _InsightCard extends StatelessWidget {
+  final Map<String, dynamic> insight;
   final Color moodColor;
   final Color moodBgColor;
   final IconData moodIcon;
 
-  const _ArchiveCard({
-    required this.report,
+  const _InsightCard({
+    required this.insight,
     required this.moodColor,
     required this.moodBgColor,
     required this.moodIcon,
@@ -132,7 +222,7 @@ class _ArchiveCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tags = report['tags'] as List<dynamic>;
+    final tags = insight['tags'] as List<dynamic>;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -157,9 +247,8 @@ class _ArchiveCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      report['date'] as String,
-                      style:
-                          TextStyle(fontSize: 13, color: Colors.grey[600]),
+                      insight['date'] as String,
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                     ),
                   ],
                 ),
@@ -181,7 +270,7 @@ class _ArchiveCard extends StatelessWidget {
                           Icon(moodIcon, size: 12, color: moodColor),
                           const SizedBox(width: 3),
                           Text(
-                            report['mood'] as String,
+                            insight['mood'] as String,
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
@@ -215,7 +304,7 @@ class _ArchiveCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  report['summary'] as String,
+                  insight['summary'] as String,
                   style: const TextStyle(
                     fontSize: 13,
                     color: Colors.black87,

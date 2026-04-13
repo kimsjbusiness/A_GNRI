@@ -21,10 +21,12 @@ class NewsCardData {
 
 class NewsCard extends StatelessWidget {
   final NewsCardData data;
+  final VoidCallback? onTap;
 
   const NewsCard({
     super.key,
     required this.data,
+    this.onTap,
   });
 
   @override
@@ -33,100 +35,107 @@ class NewsCard extends StatelessWidget {
         ? data.keywords
         : [data.country, data.category];
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE3E3E8)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x08000000),
-            blurRadius: 10,
-            offset: Offset(0, 4),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFE3E3E8)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x08000000),
+                blurRadius: 10,
+                offset: Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(18),
-            ),
-            child: Stack(
-              children: [
-                Container(
-                  height: 200,
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFFE3E3E6),
-                        Color(0xFFCFCFD4),
-                        Color(0xFFB8B8BE),
-                      ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(18),
+                ),
+                child: Stack(
+                  children: [
+                    Container(
+                      height: 200,
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFFE3E3E6),
+                            Color(0xFFCFCFD4),
+                            Color(0xFFB8B8BE),
+                          ],
+                        ),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.image_outlined,
+                          size: 56,
+                          color: Color(0xFF8C8C94),
+                        ),
+                      ),
                     ),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.image_outlined,
-                      size: 56,
-                      color: Color(0xFF8C8C94),
+
+                    Positioned(
+                      left: 14,
+                      bottom: 14,
+                      right: 14,
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: tags.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final tag = entry.value;
+
+                          return KeywordChip(
+                            label: tag,
+                            isPrimary: index == 0,
+                          );
+                        }).toList(),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
+              ),
 
-                Positioned(
-                  left: 14,
-                  bottom: 14,
-                  right: 14,
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: tags.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final tag = entry.value;
-
-                      return KeywordChip(
-                        label: tag,
-                        isPrimary: index == 0,
-                      );
-                    }).toList(),
-                  ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      data.title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF111111),
+                        height: 1.35,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      data.summary,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF7A7A85),
+                        height: 1.6,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  data.title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF111111),
-                    height: 1.35,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  data.summary,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF7A7A85),
-                    height: 1.6,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
