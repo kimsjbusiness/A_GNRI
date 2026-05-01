@@ -12,7 +12,7 @@ services:
       # 이미지의 Maintenance database 정보 반영
       POSTGRES_DB: Main
       # 기존에 사용하시던 DB 비밀번호를 정확히 입력하세요
-      POSTGRES_PASSWORD: qlalfqjsgh1234
+      POSTGRES_PASSWORD: postgre0721!
     ports:
       # 이미지의 Port 25725를 외부 접속 포트로 설정
       - "25725:5432"
