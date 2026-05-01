@@ -6,14 +6,14 @@ services:
     container_name: agnri_postgres
     restart: always
     environment:
-      # 이미지의 Username 정보 반영
+      
       POSTGRES_USER: dbadmin
-      # 이미지의 Maintenance database 정보 반영
+      
       POSTGRES_DB: Main
-      # 비밀번호는 보안을 위해 실제 사용할 값으로 변경하세요
+      
       POSTGRES_PASSWORD: postgre0721!
     ports:
-      # 이미지의 Port 정보 반영 (호스트 25725 -> 컨테이너 5432)
+     
       - "25725:5432"
     volumes:
       - agnri_db_data:/var/lib/postgresql/data
@@ -23,9 +23,9 @@ services:
     container_name: agnri_pgadmin
     restart: always
     environment:
-      # pgAdmin 접속을 위한 관리자 이메일과 비밀번호
+      
       PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_PASSWORD: qlalfqjsgh1234
     ports:
       - "5050:80"
     depends_on:
