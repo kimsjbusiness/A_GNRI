@@ -2,34 +2,38 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:16-alpine
-    container_name: agnri_postgres
+    
+    image: postgres:16
+    container_name: a_gnri_db
     restart: always
     environment:
-      
+
       POSTGRES_USER: dbadmin
-      
+      # 이미지의 Maintenance database 정보 반영
       POSTGRES_DB: Main
-      
-      POSTGRES_PASSWORD: postgre0721!
+      # 기존에 사용하시던 DB 비밀번호를 정확히 입력하세요
+      POSTGRES_PASSWORD: qlalfqjsgh1234
     ports:
-     
+      # 이미지의 Port 25725를 외부 접속 포트로 설정
       - "25725:5432"
     volumes:
-      - agnri_db_data:/var/lib/postgresql/data
+      # 기존 데이터가 저장된 볼륨을 연결합니다.
+      # 만약 기존 데이터가 유실되지 않길 원하신다면 하단의 '환경 정리'를 먼저 보세요.
+      - a_gnri_db_data:/var/lib/postgresql/data
 
   pgadmin:
     image: dpage/pgadmin4
     container_name: agnri_pgadmin
     restart: always
     environment:
-      
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: qlalfqjsgh1234
+      # pgAdmin 접속을 위한 이메일과 비밀번호 (기존에 쓰던 것 또는 새 설정)
+      PGADMIN_DEFAULT_EMAIL: "admin@example.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
     ports:
       - "5050:80"
     depends_on:
       - db
 
 volumes:
-  agnri_db_data:
+  # 기존 볼륨을 그대로 사용하기 위해 정의합니다.
+  a_gnri_db_data:
