@@ -7,8 +7,9 @@ services:
       POSTGRES_USER: dbadmin
       POSTGRES_DB: Main
       POSTGRES_PASSWORD: qlalfqjsgh1234
+    command: ["postgres", "-c", "listen_addresses=*"]
     ports:
-      - "25725:5432"
+      - "0.0.0.0:25725:5432"
     volumes:
       - agnri_data:/var/lib/postgresql/data
 
