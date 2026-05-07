@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/notification_provider.dart';
 
-/// 모든 탭에서 공유하는 상단 헤더 위젯
 class AppHeader extends StatelessWidget {
   const AppHeader({super.key});
 
@@ -37,7 +38,33 @@ class AppHeader extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.notifications_none),
+          // 알림 벨 (읽지 않은 알림 있을 때 빨간 점)
+          Consumer<NotificationProvider>(
+            builder: (context, provider, _) => GestureDetector(
+              onTap: () {
+                Navigator.pushReplacementNamed(context, '/notifications');
+              },
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.notifications_none),
+                  if (provider.hasUnread)
+                    Positioned(
+                      right: -2,
+                      top: -2,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(width: 8),
           const Icon(Icons.dark_mode_outlined),
           const SizedBox(width: 8),

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
 import 'screens/archive_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/notification_screen.dart';
+import 'services/notification_service.dart';
+import 'widgets/in_app_banner.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -11,9 +14,10 @@ class App extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Global News Report',
+      navigatorKey: NotificationService.navigatorKey,
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFF5F5F7),
-        fontFamily: 'Pretendard', // 없으면 자동 기본 폰트 사용
+        fontFamily: 'Pretendard',
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0B1020)),
       ),
       initialRoute: '/',
@@ -26,16 +30,21 @@ class App extends StatelessWidget {
           case '/settings':
             page = const SettingsScreen();
             break;
+          case '/notifications':
+            page = const NotificationScreen();
+            break;
           default:
             page = const HomeScreen();
         }
         return PageRouteBuilder(
-          pageBuilder: (_, __, ___) => page,
+          pageBuilder: (context, a1, a2) => page,
           transitionDuration: Duration.zero,
           reverseTransitionDuration: Duration.zero,
           settings: settings,
         );
       },
+      builder: (context, child) =>
+          InAppBannerOverlay(child: child ?? const SizedBox.shrink()),
     );
   }
 }

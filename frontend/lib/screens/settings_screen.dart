@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/notification_provider.dart';
+import '../services/notification_service.dart';
 import '../widgets/app_header.dart';
 import '../widgets/bottom_nav_bar.dart';
 
@@ -13,13 +16,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
   TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 0);
   bool _soundEnabled = true;
   bool _vibrationEnabled = true;
+  bool _timeExpanded = false;
 
-  Future<void> _pickTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: _selectedTime,
-    );
-    if (picked != null) setState(() => _selectedTime = picked);
+  late FixedExtentScrollController _hourCtrl;
+  late FixedExtentScrollController _minCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _hourCtrl = FixedExtentScrollController(initialItem: _selectedTime.hour);
+    _minCtrl = FixedExtentScrollController(initialItem: _selectedTime.minute);
+    _initNotification();
+  }
+
+  Future<void> _initNotification() async {
+    final granted = await NotificationService.requestPermission();
+    if (granted) {
+      await NotificationService.scheduleDailyNotification(_selectedTime);
+    }
+  }
+
+  @override
+  void dispose() {
+    _hourCtrl.dispose();
+    _minCtrl.dispose();
+    super.dispose();
   }
 
   String _formatTime(TimeOfDay time) =>
@@ -85,54 +106,145 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          // 시간 레이블
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.access_time_outlined,
-                                size: 15,
-                                color: Colors.grey[500],
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                '일일 리포트 알림 시간',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-
-                          // 시간 선택 필드
+                          // 알림 시간 행 (탭 시 인라인 휠 펼침)
                           GestureDetector(
-                            onTap: _pickTime,
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                border:
-                                    Border.all(color: Colors.grey.shade300),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                _formatTime(_selectedTime),
-                                style: const TextStyle(fontSize: 14),
-                              ),
+                            onTap: () {
+                              final wasExpanded = _timeExpanded;
+                              setState(() => _timeExpanded = !_timeExpanded);
+                              if (wasExpanded) {
+                                NotificationService.scheduleDailyNotification(
+                                    _selectedTime);
+                              }
+                            },
+                            behavior: HitTestBehavior.opaque,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  '알림 시간',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      _formatTime(_selectedTime),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    AnimatedRotation(
+                                      turns: _timeExpanded ? 0.25 : 0,
+                                      duration:
+                                          const Duration(milliseconds: 200),
+                                      child: Icon(
+                                        Icons.chevron_right,
+                                        size: 18,
+                                        color: Colors.grey[400],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '매일 ${_formatTime(_selectedTime)}에 새로운 뉴스 리포트를 받아보세요',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade500,
-                            ),
+
+                          // 인라인 스크롤 휠
+                          AnimatedSize(
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOut,
+                            child: _timeExpanded
+                                ? Padding(
+                                    padding: const EdgeInsets.only(top: 12),
+                                    child: SizedBox(
+                                      height: 140,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          // 시
+                                          SizedBox(
+                                            width: 64,
+                                            child: ListWheelScrollView
+                                                .useDelegate(
+                                              controller: _hourCtrl,
+                                              itemExtent: 44,
+                                              perspective: 0.003,
+                                              onSelectedItemChanged: (v) =>
+                                                  setState(() {
+                                                _selectedTime = TimeOfDay(
+                                                  hour: v,
+                                                  minute: _selectedTime.minute,
+                                                );
+                                              }),
+                                              childDelegate:
+                                                  ListWheelChildBuilderDelegate(
+                                                childCount: 24,
+                                                builder: (_, i) => Center(
+                                                  child: Text(
+                                                    i.toString().padLeft(2, '0'),
+                                                    style: const TextStyle(
+                                                      fontSize: 26,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const Padding(
+                                            padding: EdgeInsets.only(bottom: 2),
+                                            child: Text(
+                                              ':',
+                                              style: TextStyle(
+                                                fontSize: 26,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                          // 분
+                                          SizedBox(
+                                            width: 64,
+                                            child: ListWheelScrollView
+                                                .useDelegate(
+                                              controller: _minCtrl,
+                                              itemExtent: 44,
+                                              perspective: 0.003,
+                                              onSelectedItemChanged: (v) =>
+                                                  setState(() {
+                                                _selectedTime = TimeOfDay(
+                                                  hour: _selectedTime.hour,
+                                                  minute: v,
+                                                );
+                                              }),
+                                              childDelegate:
+                                                  ListWheelChildBuilderDelegate(
+                                                childCount: 60,
+                                                builder: (_, i) => Center(
+                                                  child: Text(
+                                                    i.toString().padLeft(2, '0'),
+                                                    style: const TextStyle(
+                                                      fontSize: 26,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
                           ),
+
                           const SizedBox(height: 20),
 
                           // 알림음 토글
@@ -162,7 +274,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 value: _soundEnabled,
                                 onChanged: (v) =>
                                     setState(() => _soundEnabled = v),
-                                activeColor: Colors.black,
+                                activeThumbColor: Colors.black,
                               ),
                             ],
                           ),
@@ -195,7 +307,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 value: _vibrationEnabled,
                                 onChanged: (v) =>
                                     setState(() => _vibrationEnabled = v),
-                                activeColor: Colors.black,
+                                activeThumbColor: Colors.black,
                               ),
                             ],
                           ),
@@ -205,12 +317,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('테스트 알림을 전송했습니다'),
-                                  ),
-                                );
+                              onPressed: () async {
+                                // 인앱 배너 표시
+                                context
+                                    .read<NotificationProvider>()
+                                    .triggerNotification();
+                                // OS 알림도 발송 (앱이 백그라운드일 때 보임)
+                                await NotificationService.showTestNotification();
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.black,
