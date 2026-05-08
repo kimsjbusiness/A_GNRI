@@ -5,34 +5,32 @@ import '../widgets/bottom_nav_bar.dart';
 class ArchiveScreen extends StatelessWidget {
   const ArchiveScreen({super.key});
 
-  static const List<Map<String, dynamic>> _mockReports = [
+  // 팀원이 추가한 풍부한 데이터 구조 유지
+  static const List<Map<String, dynamic>> _mockInsights = [
     {
       'date': '2026년 4월 1일',
       'mood': '밝음',
       'moodType': 'bright',
-      'tags': ['친환경 & AI 기술'],
+      'tags': ['친환경 에너지', '반도체'],
       'summary':
-          '글로벌 기후 정상회의에서 15개국이 2030년까지 탄소 배출 50% 감축에 합의했습니다. 미국과 중국은 신재생 에너지 협력 강화를 발표했으며, EU는 탄소국경세 시행을 앞당기기로 결정했습니다.',
+          '글로벌 기후 정상회의에서 15개국이 탄소 배출 감축에 합의하며 친환경 정책 기대감이 높아졌고, 아시아 태평양 지역의 경기 회복과 한국 반도체 수출 증가가 함께 나타나며 시장 전반의 투자 심리가 개선되고 있습니다.',
+      'detail':
+          '탄소 감축 정책 강화와 반도체 업황 회복이 동시에 나타나며 관련 테마의 유동성이 커지고 있습니다.',
+      'keywords': ['탄소감축', '친환경', '반도체', '경제회복'],
     },
     {
       'date': '2026년 3월 31일',
-      'mood': '어두움',
-      'moodType': 'dark',
-      'tags': ['방위주 & 에너지'],
+      'mood': '밝음',
+      'moodType': 'bright',
+      'tags': ['친환경 에너지', '반도체'],
       'summary':
-          '중동 지역에서 긴장이 고조되고 있습니다. 석유 수출국들은 생산량 조정을 논의 중이며, 국제 유가는 배럴당 5달러 상승했습니다. 유럽 증시는 에너지 우려로 하락세를 보였습니다. 미국 연방준',
-    },
-    {
-      'date': '2026년 3월 30일',
-      'mood': '보통',
-      'moodType': 'neutral',
-      'tags': ['핀테크 & 물류'],
-      'summary':
-          'G7 국가들이 디지털 화폐 협력 체계 구축에 합의했습니다. 중앙은행 디지털화폐(CBDC) 표준화 작업이 시작되며, 국제 결제 시스템의 혁신이 예상됩니다. 글로벌 공급망이 안정화되고 있습',
+          '글로벌 기후 정상회의에서 15개국이 탄소 배출 감축에 합의하며 친환경 정책 기대감이 높아졌고, 아시아 태평양 지역의 경기 회복과 한국 반도체 수출 증가가 함께 나타나며 시장 전반의 투자 심리가 개선되고 있습니다.',
+      'detail':
+          '탄소 감축 정책 강화와 반도체 업황 회복이 동시에 나타나며 관련 테마의 유동성이 커지고 있습니다.',
+      'keywords': ['탄소감축', '친환경', '반도체', '경제회복'],
     },
   ];
 
-  // 리포트 1면과 동일한 뉴스 카드 목데이터
   static const List<Map<String, String>> _mockNewsCards = [
     {
       'country': '브라질',
@@ -124,8 +122,9 @@ class ArchiveScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // 팀원이 수정한 제목/부제목 유지
                     const Text(
-                      '과거 리포트',
+                      '시장 인사이트',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
@@ -133,12 +132,12 @@ class ArchiveScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      '지난 리포트를 다시 확인하세요',
+                      '현재 시장의 분위기와 주요 테마를 확인하세요',
                       style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                     const SizedBox(height: 20),
-                    ...List.generate(_mockReports.length, (i) {
-                      final report = _mockReports[i];
+                    ...List.generate(_mockInsights.length, (i) {
+                      final report = _mockInsights[i];
                       final moodType = report['moodType'] as String;
                       final moodColor = _moodColor(moodType);
                       final moodBgColor = _moodBgColor(moodType);
@@ -342,7 +341,6 @@ class _ReportDetailModal extends StatelessWidget {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          // 감성 뱃지
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
@@ -369,7 +367,6 @@ class _ReportDetailModal extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          // 태그 뱃지
                           ...tags.map(
                             (tag) => Container(
                               padding: const EdgeInsets.symmetric(
@@ -394,7 +391,6 @@ class _ReportDetailModal extends StatelessWidget {
                     ],
                   ),
                 ),
-                // 닫기 버튼
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Container(
@@ -403,7 +399,8 @@ class _ReportDetailModal extends StatelessWidget {
                       color: Colors.grey.shade100,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.close, size: 18, color: Colors.black54),
+                    child: const Icon(
+                        Icons.close, size: 18, color: Colors.black54),
                   ),
                 ),
               ],
@@ -419,7 +416,6 @@ class _ReportDetailModal extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 주요 이미지 섹션
                   const Text(
                     '주요 이미지',
                     style: TextStyle(
@@ -439,10 +435,7 @@ class _ReportDetailModal extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 8),
-
-                  // 주요 뉴스 섹션
                   const Text(
                     '주요 뉴스',
                     style: TextStyle(
@@ -496,7 +489,7 @@ class _ReportDetailModal extends StatelessWidget {
   }
 }
 
-// ─── 모달 뉴스 카드 (이미지 + 국가/카테고리 라벨 오버레이) ───────────────────────
+// ─── 모달 뉴스 카드 ────────────────────────────────────────────────────────────
 class _ModalNewsCard extends StatelessWidget {
   final String country;
   final String category;
@@ -521,7 +514,6 @@ class _ModalNewsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 이미지 플레이스홀더 + 라벨 오버레이
           Stack(
             children: [
               Container(
@@ -551,7 +543,6 @@ class _ModalNewsCard extends StatelessWidget {
               ),
             ],
           ),
-          // 제목 + 요약
           Padding(
             padding: const EdgeInsets.all(14),
             child: Column(
