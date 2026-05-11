@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import '../screens/home_screen.dart';
 import '../screens/insight_screen.dart';
+import '../screens/trend_screen.dart';
 
 class PageTabBar extends StatelessWidget {
   final int selectedPage; // 1, 2, 3
@@ -22,21 +23,32 @@ class PageTabBar extends StatelessWidget {
       case 1:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (_) => const HomeScreen(),
+          PageRouteBuilder(
+            pageBuilder: (_, __, ___) => const HomeScreen(),
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
           ),
         );
         break;
       case 2:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (_) => InsightScreen(reportData: insightData),
+          PageRouteBuilder(
+            pageBuilder: (_, __, ___) => InsightScreen(reportData: insightData),
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
           ),
         );
         break;
       case 3:
-        // 아직 미구현
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (_, __, ___) => const TrendScreen(),
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+          ),
+        );
         break;
     }
   }
@@ -66,11 +78,11 @@ class PageTabBar extends StatelessWidget {
               onTap: () => _moveToPage(context, 2),
             ),
           ),
-          const Expanded(
+          Expanded(
             child: _TabItem(
               title: '3면',
-              isSelected: false,
-              isDisabled: true,
+              isSelected: selectedPage == 3,
+              onTap: () => _moveToPage(context, 3),
             ),
           ),
         ],
@@ -115,22 +127,17 @@ class _TabItem extends StatelessWidget {
                 : null,
           ),
           child: Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-                    color: isDisabled
-                        ? const Color(0xFFB5B5BD)
-                        : isSelected
-                            ? Colors.white
-                            : const Color(0xFF8B8B96),
-                  ),
-                ),
-              ],
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                color: isDisabled
+                    ? const Color(0xFFB5B5BD)
+                    : isSelected
+                        ? Colors.white
+                        : const Color(0xFF8B8B96),
+              ),
             ),
           ),
         ),
