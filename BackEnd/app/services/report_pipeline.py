@@ -1,107 +1,118 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+import logging
 from datetime import date
+
+from sqlalchemy import select
+
 from app.core.database import AsyncSessionLocal
 from app.models.domain import DailyReport, ReportImage, TrendingKeyword
-from app.services.news_service import news_service
 from app.services.gemini_service import gemini_service
-from app.services.mmr_service import mmr_service
 from app.services.image_service import image_service
+from app.services.mmr_service import mmr_service
+from app.services.news_service import news_service
 from app.services.pytrends_service import pytrends_service
-import logging
 
 logger = logging.getLogger(__name__)
 
+
 async def run_daily_report_pipeline():
-    """Execute the full 14-step workflow and save to database."""
+    """Execute the full daily report workflow and save it atomically."""
     async with AsyncSessionLocal() as db:
         try:
-            logger.info("Starting Daily Report Pipeline...")
-            
-            # 1. Fetch 450 news
-            try:
-                raw_news = await news_service.get_all_news()
-            except Exception as e:
-                logger.warning(f"News fetch failed: {e}. Using dummy news for testing.")
-                raw_news = ["Global market shows stability despite inflation concerns."] * 450
-            
-            if not raw_news:
-                logger.warning("No news fetched. Using dummy news for testing.")
-                raw_news = ["Global market shows stability despite inflation concerns."] * 450
-            
-            # 2. Translate to English (Gemini)
-            # Since news_service might already give English or titles, we proceed.
-            # Step 2: "Translate all 450 news to English"
-            en_news = await gemini_service.translate_to_english(raw_news)
-            
-            # 3. Summarize by country (15 countries * 3 = 45 sentences)
-            # We need to maintain country mapping. 
-            # (Simplified for now: distribute 450 items into 15 groups of 30)
-            country_groups = {}
-            for i, country in enumerate(news_service.gdp_data.keys()):
-                country_groups[country] = en_news[i*30 : (i+1)*30]
-            
-            forty_five_sentences = await gemini_service.summarize_by_country(country_groups)
-            
-            # 4. Final summary (6 sentences EN)
+            today = date.today()
+            existing_result = await db.execute(
+                select(DailyReport).where(DailyReport.report_date == today)
+            )
+            existing_report = existing_result.scalar_one_or_none()
+            if existing_report:
+                logger.info("Daily report for %s already exists.", today)
+                return existing_report
+
+            logger.info("Starting daily report pipeline...")
+
+            news_by_country = await news_service.get_all_news_by_country()
+            total_news = sum(len(items) for items in news_by_country.values())
+            if total_news == 0:
+                raise RuntimeError("No news articles were fetched from News API.")
+
+            translated_by_country = {}
+            for country, news_items in news_by_country.items():
+                if not news_items:
+                    raise RuntimeError(f"No news articles were fetched for country={country}.")
+                translated_by_country[country] = await gemini_service.translate_to_english(news_items)
+
+            forty_five_sentences = await gemini_service.summarize_by_country(translated_by_country)
+            if len(forty_five_sentences) != 45:
+                raise RuntimeError(f"Expected 45 country summary sentences, got {len(forty_five_sentences)}.")
+
             final_summary_en = await gemini_service.final_summary(forty_five_sentences)
-            
-            # 5. Translate to Korean (6 sentences KR)
             final_summaries_kr = await gemini_service.translate_to_korean(final_summary_en)
-            
-            # 6. MMR (Top 3 KR sentences)
+            if len(final_summaries_kr) != 6:
+                raise RuntimeError(f"Expected 6 Korean final summaries, got {len(final_summaries_kr)}.")
+
             top_3_sentences = mmr_service.select_top_sentences(final_summaries_kr, top_n=3)
-            
-            # 7. Generate 3 images
-            # (Using English sentences for better image generation if possible, 
-            # but using top_3_sentences as requested)
-            images_data = await image_service.generate_images_for_sentences(top_3_sentences)
-            
-            # 8. Sentiment Analysis
+            if len(top_3_sentences) != 3:
+                raise RuntimeError(f"Expected 3 MMR sentences, got {len(top_3_sentences)}.")
+
             sentiment = await gemini_service.analyze_sentiment(final_summaries_kr)
-            
-            # 9. Stock Theme
             theme = await gemini_service.generate_stock_theme(final_summaries_kr)
-            
-            # 10. Trending Keywords (Pytrends)
+            image_records = []
+            try:
+                image_prompts = await gemini_service.translate_to_english(top_3_sentences)
+            except Exception:
+                logger.exception("Image prompt translation failed. Skipping image generation.")
+                image_prompts = []
+
+            for sentence, prompt in zip(top_3_sentences, image_prompts):
+                try:
+                    img_bytes = await image_service.generate_image(prompt)
+                except Exception:
+                    logger.exception("Image generation failed for sentence: %s", sentence)
+                    continue
+
+                if img_bytes:
+                    image_records.append((sentence, img_bytes))
+
+            if len(image_records) != 3:
+                logger.warning("Expected 3 generated images, got %s. Saving report anyway.", len(image_records))
+
             trending_data = await pytrends_service.get_top_10_keywords()
-            
-            # --- Save to Database ---
-            
+            if len(trending_data) != 10:
+                raise RuntimeError(f"Expected 10 trending keywords, got {len(trending_data)}.")
+
             report = DailyReport(
-                report_date=date.today(),
+                report_date=today,
                 final_summaries_kr=final_summaries_kr,
                 top_3_sentences=top_3_sentences,
                 market_sentiment=sentiment,
-                stock_theme=theme
+                stock_theme=theme,
             )
             db.add(report)
-            await db.flush() # Get report_id
-            
-            # Save Images
-            for i, img_bytes in enumerate(images_data):
-                img_obj = ReportImage(
-                    report_id=report.report_id,
-                    referenced_sentence=top_3_sentences[i],
-                    image_data=img_bytes
+            await db.flush()
+
+            for sentence, img_bytes in image_records:
+                db.add(
+                    ReportImage(
+                        report_id=report.report_id,
+                        referenced_sentence=sentence,
+                        image_data=img_bytes,
+                    )
                 )
-                db.add(img_obj)
-                
-            # Save Trending Keywords
+
             for kw_item in trending_data:
-                kw_obj = TrendingKeyword(
-                    report_id=report.report_id,
-                    ranking=kw_item["ranking"],
-                    keyword=kw_item["keyword"],
-                    search_url=kw_item["search_url"]
+                db.add(
+                    TrendingKeyword(
+                        report_id=report.report_id,
+                        ranking=kw_item["ranking"],
+                        keyword=kw_item["keyword"],
+                        search_url=kw_item["search_url"],
+                    )
                 )
-                db.add(kw_obj)
-            
+
             await db.commit()
-            logger.info(f"Successfully created daily report for {date.today()}")
-            
+            logger.info("Successfully created daily report for %s.", today)
             return report
-            
-        except Exception as e:
+
+        except Exception:
             await db.rollback()
-            logger.error(f"Pipeline failed: {str(e)}")
-            raise e
+            logger.exception("Pipeline failed")
+            raise
