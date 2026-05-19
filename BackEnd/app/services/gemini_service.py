@@ -1,75 +1,156 @@
+import json
+import re
+from typing import Dict, List
+
 from google import genai
-from typing import List, Dict, Tuple
+from google.genai import errors
+
 from app.core.config import settings
+
 
 class GeminiService:
     def __init__(self):
-        # 1. 전역 설정이 아닌, 클라이언트 객체(Client Object)를 생성하는 방식으로 변경되었습니다.
         self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        self.primary_model = 'gemini-2.0-flash-lite'
-        self.fallback_models = ['gemini-2.0-flash', 'gemini-pro-latest']
+        self.primary_model = "gemini-2.5-flash"
+        self.fallback_models = ["gemini-2.0-flash", "gemini-2.0-flash-lite"]
+
+    def _model_candidates(self) -> List[str]:
+        configured_model = getattr(settings, "GEMINI_MODEL", None)
+        candidates = [configured_model or self.primary_model, *self.fallback_models]
+        return list(dict.fromkeys([model for model in candidates if model]))
 
     async def _generate_with_fallback(self, prompt: str) -> str:
-        """Attempt generation with free models only."""
+        if not settings.GEMINI_API_KEY:
+            raise RuntimeError("GEMINI_API_KEY is not configured.")
+
+        last_error: Exception | None = None
+        for model_name in self._model_candidates():
+            try:
+                response = await self.client.aio.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                )
+                text = (response.text or "").strip()
+                if text:
+                    return text
+                last_error = RuntimeError(f"Gemini model {model_name} returned no text.")
+            except errors.APIError as exc:
+                last_error = exc
+                if exc.code in {401, 403}:
+                    raise
+            except Exception as exc:
+                last_error = exc
+
+        raise RuntimeError(f"Gemini generation failed for all configured models: {last_error}")
+
+    def _clean_lines(self, text: str, limit: int | None = None) -> List[str]:
+        lines = []
+        for raw_line in text.splitlines():
+            line = re.sub(r"^\s*(?:[-*]|\d+[\).\s-]+)\s*", "", raw_line).strip()
+            if line:
+                lines.append(line)
+        return lines[:limit] if limit else lines
+
+    def _parse_json_array(self, text: str, expected_len: int | None = None) -> List[str]:
+        cleaned = text.strip()
+        if cleaned.startswith("```"):
+            cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", cleaned, flags=re.IGNORECASE | re.DOTALL).strip()
+
         try:
-            # 2. 비동기 호출을 위해 client.aio.models.generate_content를 사용합니다.
-            response = await self.client.aio.models.generate_content(
-                model=self.primary_model,
-                contents=prompt
-            )
-            return response.text.strip()
-        except Exception as e:
-            if "not found" in str(e).lower():
-                # Only try variations of the free 'flash' model
-                for fallback in self.fallback_models:
-                    try:
-                        response = await self.client.aio.models.generate_content(
-                            model=fallback,
-                            contents=prompt
-                        )
-                        return response.text.strip()
-                    except:
-                        continue
-            raise e
+            parsed = json.loads(cleaned)
+            if isinstance(parsed, list):
+                values = [str(item).strip() for item in parsed if str(item).strip()]
+                return values[:expected_len] if expected_len else values
+        except json.JSONDecodeError:
+            pass
+
+        lines = self._clean_lines(text)
+        return lines[:expected_len] if expected_len else lines
 
     async def translate_to_english(self, texts: List[str]) -> List[str]:
-        combined_text = "\n---\n".join(texts)
-        prompt = f"Translate the following news snippets into English. Separate each with '---':\n\n{combined_text}"
-        
-        text_out = await self._generate_with_fallback(prompt)
-        translated = text_out.split("---")
-        return [t.strip() for t in translated if t.strip()]
+        if not texts:
+            return []
+
+        translated: List[str] = []
+        chunk_size = 30
+        for start in range(0, len(texts), chunk_size):
+            chunk = texts[start : start + chunk_size]
+            combined_text = "\n".join(f"{idx + 1}. {text}" for idx, text in enumerate(chunk))
+            prompt = (
+                "Translate the following news snippets into English. "
+                "Return only a valid JSON array of translated strings in the same order. "
+                "Do not include markdown or explanations.\n\n"
+                f"{combined_text}"
+            )
+            text_out = await self._generate_with_fallback(prompt)
+            parsed = self._parse_json_array(text_out, expected_len=len(chunk))
+            if len(parsed) != len(chunk):
+                raise RuntimeError(f"Expected {len(chunk)} translated items, got {len(parsed)}.")
+            translated.extend(parsed)
+
+        return translated
 
     async def summarize_by_country(self, country_news: Dict[str, List[str]]) -> List[str]:
-        all_summaries = []
+        all_summaries: List[str] = []
         for country, news_list in country_news.items():
-            combined = "\n".join(news_list)
-            prompt = f"Summarize the following news from {country} into exactly 3 concise English sentences:\n\n{combined}"
-            all_summaries.append(await self._generate_with_fallback(prompt))
+            if not news_list:
+                continue
+
+            combined = "\n".join(f"- {news}" for news in news_list)
+            prompt = (
+                f"Summarize the following news from {country} into exactly 3 concise English sentences. "
+                "Return only the 3 sentences, one per line, without bullets or numbering:\n\n"
+                f"{combined}"
+            )
+            summary_text = await self._generate_with_fallback(prompt)
+            sentences = self._clean_lines(summary_text, limit=3)
+            if len(sentences) != 3:
+                raise RuntimeError(f"Expected 3 summary sentences for {country}, got {len(sentences)}.")
+            all_summaries.extend(sentences)
         return all_summaries
 
     async def final_summary(self, forty_five_sentences: List[str]) -> str:
-        combined = "\n".join(forty_five_sentences)
-        prompt = f"Summarize the following 45 sentences into exactly 6 clear and insightful English sentences:\n\n{combined}"
-        return await self._generate_with_fallback(prompt)
+        combined = "\n".join(f"- {sentence}" for sentence in forty_five_sentences)
+        prompt = (
+            "Summarize the following global news points into exactly 6 clear English sentences. "
+            "Return only the 6 sentences, one per line, without bullets or numbering:\n\n"
+            f"{combined}"
+        )
+        text = await self._generate_with_fallback(prompt)
+        return "\n".join(self._clean_lines(text, limit=6))
 
     async def translate_to_korean(self, english_text: str) -> List[str]:
-        prompt = f"Translate these 6 English sentences into natural Korean. Output them as a list separated by newlines:\n\n{english_text}"
+        prompt = (
+            "Translate these 6 English sentences into natural Korean. "
+            "Return only the translated sentences, one per line, without bullets or numbering:\n\n"
+            f"{english_text}"
+        )
         text_out = await self._generate_with_fallback(prompt)
-        lines = text_out.split("\n")
-        return [l.strip() for l in lines if l.strip()][:6]
+        return self._clean_lines(text_out, limit=6)
 
     async def analyze_sentiment(self, korean_sentences: List[str]) -> str:
         combined = "\n".join(korean_sentences)
-        prompt = f"Analyze the overall market sentiment of these sentences. Return only one word from: '어두움', '보통', '밝음':\n\n{combined}"
+        prompt = (
+            "Analyze the overall market sentiment of these Korean news sentences. "
+            "Return exactly one Korean word from these options only: 어두움, 보통, 밝음.\n\n"
+            f"{combined}"
+        )
         sentiment = await self._generate_with_fallback(prompt)
-        if "밝음" in sentiment: return "밝음"
-        if "어두움" in sentiment: return "어두움"
+        if "밝음" in sentiment:
+            return "밝음"
+        if "어두움" in sentiment:
+            return "어두움"
         return "보통"
 
     async def generate_stock_theme(self, korean_sentences: List[str]) -> str:
         combined = "\n".join(korean_sentences)
-        prompt = f"Based on these sentences, identify the stock market theme with the highest expected liquidity. Return only the theme name (e.g., '반도체', '이차전지'):\n\n{combined}"
-        return await self._generate_with_fallback(prompt)
+        prompt = (
+            "Based on these Korean news sentences, identify the stock-market theme with the "
+            "highest expected liquidity today. Return only one short theme phrase, for example "
+            "반도체, AI, 친환경 에너지, 방산, 바이오. Do not explain.\n\n"
+            f"{combined}"
+        )
+        return (await self._generate_with_fallback(prompt)).splitlines()[0].strip()
+
 
 gemini_service = GeminiService()
