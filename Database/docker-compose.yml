@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: a_gnri_db
+    restart: always
+    environment:
+      POSTGRES_USER: dbadmin
+      POSTGRES_DB: Main
+      POSTGRES_PASSWORD: qlalfqjsgh1234
+    command: ["postgres", "-c", "listen_addresses=*"]
+    ports:
+      - "0.0.0.0:25725:5432"
+    volumes:
+      - agnri_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: a_gnri_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: agnridb@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: qlalfqjsgh1234
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
+volumes:
+  agnri_data:
