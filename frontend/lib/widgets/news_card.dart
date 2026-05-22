@@ -1,7 +1,8 @@
-/// 1면에서 뉴스 요약 정보를 카드 형태로 보여주는 UI 위젯
-/// 뉴스 데이터(국가, 카테고리, 제목, 요약)를 카드 UI로 표현하는 위젯
+// 1면에서 뉴스 요약 정보를 카드 형태로 보여주는 UI 위젯
 
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import '../core/theme.dart';
 
 class NewsCardData {
   final String country;
@@ -22,15 +23,18 @@ class NewsCardData {
 class NewsCard extends StatelessWidget {
   final NewsCardData data;
   final VoidCallback? onTap;
+  final Uint8List? imageBytes;
 
   const NewsCard({
     super.key,
     required this.data,
     this.onTap,
+    this.imageBytes,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final tags = data.keywords.isNotEmpty
         ? data.keywords
         : [data.country, data.category];
@@ -42,14 +46,16 @@ class NewsCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: colors.surface,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFE3E3E8)),
-            boxShadow: const [
+            border: Border.all(color: colors.border),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x08000000),
+                color: context.isDark
+                    ? Colors.transparent
+                    : const Color(0x08000000),
                 blurRadius: 10,
-                offset: Offset(0, 4),
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -62,29 +68,42 @@ class NewsCard extends StatelessWidget {
                 ),
                 child: Stack(
                   children: [
-                    Container(
-                      height: 200,
-                      width: double.infinity,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFFE3E3E6),
-                            Color(0xFFCFCFD4),
-                            Color(0xFFB8B8BE),
-                          ],
+                    if (imageBytes != null)
+                      Image.memory(
+                        imageBytes!,
+                        height: 200,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      )
+                    else
+                      Container(
+                        height: 200,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: context.isDark
+                                ? const [
+                                    Color(0xFF252530),
+                                    Color(0xFF1E1E28),
+                                    Color(0xFF18181F),
+                                  ]
+                                : const [
+                                    Color(0xFFE3E3E6),
+                                    Color(0xFFCFCFD4),
+                                    Color(0xFFB8B8BE),
+                                  ],
+                          ),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.image_outlined,
+                            size: 56,
+                            color: colors.textSecondary,
+                          ),
                         ),
                       ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.image_outlined,
-                          size: 56,
-                          color: Color(0xFF8C8C94),
-                        ),
-                      ),
-                    ),
-
                     Positioned(
                       left: 14,
                       bottom: 14,
@@ -95,7 +114,6 @@ class NewsCard extends StatelessWidget {
                         children: tags.asMap().entries.map((entry) {
                           final index = entry.key;
                           final tag = entry.value;
-
                           return KeywordChip(
                             label: tag,
                             isPrimary: index == 0,
@@ -106,7 +124,6 @@ class NewsCard extends StatelessWidget {
                   ],
                 ),
               ),
-
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
                 child: Column(
@@ -114,19 +131,19 @@ class NewsCard extends StatelessWidget {
                   children: [
                     Text(
                       data.title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF111111),
+                        color: colors.textPrimary,
                         height: 1.35,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
                       data.summary,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF7A7A85),
+                        color: colors.textSecondary,
                         height: 1.6,
                       ),
                     ),
@@ -153,15 +170,15 @@ class KeywordChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: isPrimary ? const Color(0xFF0A0F2C) : Colors.white,
+        color: isPrimary ? const Color(0xFF0A0F2C) : colors.surface,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isPrimary
-              ? const Color(0xFF0A0F2C)
-              : const Color(0xFFD9D9DF),
+          color: isPrimary ? const Color(0xFF0A0F2C) : colors.border,
         ),
       ),
       child: Text(
@@ -169,7 +186,7 @@ class KeywordChip extends StatelessWidget {
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: isPrimary ? Colors.white : const Color(0xFF333333),
+          color: isPrimary ? Colors.white : colors.textPrimary,
         ),
       ),
     );

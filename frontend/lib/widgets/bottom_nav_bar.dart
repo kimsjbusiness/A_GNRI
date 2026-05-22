@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/theme.dart';
 import '../screens/home_screen.dart';
 import '../screens/archive_screen.dart';
 import '../screens/settings_screen.dart';
@@ -18,27 +19,19 @@ class BottomNavBar extends StatelessWidget {
       case 0:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (_) => const HomeScreen(),
-          ),
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
         break;
-
       case 1:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (_) => const ArchiveScreen(),
-          ),
+          MaterialPageRoute(builder: (_) => const ArchiveScreen()),
         );
         break;
-
       case 2:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (_) => const SettingsScreen(),
-          ),
+          MaterialPageRoute(builder: (_) => const SettingsScreen()),
         );
         break;
     }
@@ -46,15 +39,14 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Container(
       height: 86,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF6F6F8),
+      decoration: BoxDecoration(
+        color: colors.header,
         border: Border(
-          top: BorderSide(
-            color: Color(0xFFE3E3E8),
-            width: 1,
-          ),
+          top: BorderSide(color: colors.border, width: 1),
         ),
       ),
       child: Row(
@@ -99,8 +91,8 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        selected ? const Color(0xFF111111) : const Color(0xFF8A8A95);
+    final colors = context.colors;
+    final color = selected ? colors.textPrimary : const Color(0xFF8A8A95);
 
     return Material(
       color: Colors.transparent,

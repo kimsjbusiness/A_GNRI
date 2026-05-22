@@ -1,19 +1,17 @@
-/// 1면/2면/3면 전환을 위한 상단 탭 네비게이션 위젯
-/// 리포트(1면/2면/3면) 화면 간 이동을 위한 공통 상단 탭 위젯
+// 1면/2면/3면 전환을 위한 상단 탭 네비게이션 위젯
 
 import 'package:flutter/material.dart';
+import '../core/theme.dart';
 import '../screens/home_screen.dart';
 import '../screens/insight_screen.dart';
 import '../screens/trend_screen.dart';
 
 class PageTabBar extends StatelessWidget {
   final int selectedPage; // 1, 2, 3
-  final Map<String, dynamic>? insightData;
 
   const PageTabBar({
     super.key,
     required this.selectedPage,
-    this.insightData,
   });
 
   void _moveToPage(BuildContext context, int page) {
@@ -24,7 +22,7 @@ class PageTabBar extends StatelessWidget {
         Navigator.pushReplacement(
           context,
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const HomeScreen(),
+            pageBuilder: (ctx, a1, a2) => const HomeScreen(),
             transitionDuration: Duration.zero,
             reverseTransitionDuration: Duration.zero,
           ),
@@ -34,7 +32,7 @@ class PageTabBar extends StatelessWidget {
         Navigator.pushReplacement(
           context,
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => InsightScreen(reportData: insightData),
+            pageBuilder: (ctx, a1, a2) => const InsightScreen(),
             transitionDuration: Duration.zero,
             reverseTransitionDuration: Duration.zero,
           ),
@@ -44,7 +42,7 @@ class PageTabBar extends StatelessWidget {
         Navigator.pushReplacement(
           context,
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const TrendScreen(),
+            pageBuilder: (ctx, a1, a2) => const TrendScreen(),
             transitionDuration: Duration.zero,
             reverseTransitionDuration: Duration.zero,
           ),
@@ -55,11 +53,13 @@ class PageTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Container(
       height: 42,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFE9E9ED),
+        color: colors.tabBg,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -95,26 +95,26 @@ class _TabItem extends StatelessWidget {
   final String title;
   final bool isSelected;
   final VoidCallback? onTap;
-  final bool isDisabled;
 
   const _TabItem({
     required this.title,
     required this.isSelected,
     this.onTap,
-    this.isDisabled = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: isDisabled ? null : onTap,
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF111111) : Colors.transparent,
+            color: isSelected ? colors.textPrimary : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             boxShadow: isSelected
                 ? const [
@@ -132,11 +132,7 @@ class _TabItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-                color: isDisabled
-                    ? const Color(0xFFB5B5BD)
-                    : isSelected
-                        ? Colors.white
-                        : const Color(0xFF8B8B96),
+                color: isSelected ? colors.background : colors.textSecondary,
               ),
             ),
           ),

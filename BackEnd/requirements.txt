@@ -3,7 +3,10 @@ uvicorn
 sqlalchemy
 psycopg2-binary
 google-generativeai
+google-genai
+asyncpg
 requests
+httpx
 pytrends
 apscheduler
 firebase-admin
