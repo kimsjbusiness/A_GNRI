@@ -4,6 +4,7 @@ import '../providers/notification_provider.dart';
 import '../services/notification_service.dart';
 import '../widgets/app_header.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../core/theme.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -48,29 +49,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Scaffold(
       body: SafeArea(
         child: Column(
           children: [
             const AppHeader(),
-            const Divider(height: 1, thickness: 1, color: Color(0xFFE3E3E8)),
+            Divider(height: 1, thickness: 1, color: colors.border),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       '설정',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
+                        color: colors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       '알림 및 시스템 설정을 관리합니다',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: colors.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 24),
 
@@ -79,14 +86,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: colors.surface,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade200),
+                        border: Border.all(color: colors.border),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 카드 헤더
                           Row(
                             children: [
                               Icon(
@@ -95,18 +101,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 color: Colors.orange[700],
                               ),
                               const SizedBox(width: 6),
-                              const Text(
+                              Text(
                                 '알림 설정',
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
+                                  color: colors.textPrimary,
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 20),
 
-                          // 알림 시간 행 (탭 시 인라인 휠 펼침)
+                          // 알림 시간 행
                           GestureDetector(
                             onTap: () {
                               final wasExpanded = _timeExpanded;
@@ -120,20 +127,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
+                                Text(
                                   '알림 시간',
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
+                                    color: colors.textPrimary,
                                   ),
                                 ),
                                 Row(
                                   children: [
                                     Text(
                                       _formatTime(_selectedTime),
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600,
+                                        color: colors.textPrimary,
                                       ),
                                     ),
                                     const SizedBox(width: 4),
@@ -144,7 +153,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       child: Icon(
                                         Icons.chevron_right,
                                         size: 18,
-                                        color: Colors.grey[400],
+                                        color: colors.textSecondary,
                                       ),
                                     ),
                                   ],
@@ -166,7 +175,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
-                                          // 시
                                           SizedBox(
                                             width: 64,
                                             child: ListWheelScrollView
@@ -187,27 +195,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                                 builder: (_, i) => Center(
                                                   child: Text(
                                                     i.toString().padLeft(2, '0'),
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       fontSize: 26,
                                                       fontWeight:
                                                           FontWeight.w600,
+                                                      color: colors.textPrimary,
                                                     ),
                                                   ),
                                                 ),
                                               ),
                                             ),
                                           ),
-                                          const Padding(
-                                            padding: EdgeInsets.only(bottom: 2),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                bottom: 2),
                                             child: Text(
                                               ':',
                                               style: TextStyle(
                                                 fontSize: 26,
                                                 fontWeight: FontWeight.w600,
+                                                color: colors.textPrimary,
                                               ),
                                             ),
                                           ),
-                                          // 분
                                           SizedBox(
                                             width: 64,
                                             child: ListWheelScrollView
@@ -228,10 +238,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                                 builder: (_, i) => Center(
                                                   child: Text(
                                                     i.toString().padLeft(2, '0'),
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       fontSize: 26,
                                                       fontWeight:
                                                           FontWeight.w600,
+                                                      color: colors.textPrimary,
                                                     ),
                                                   ),
                                                 ),
@@ -254,18 +265,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     '알림음',
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
+                                      color: colors.textPrimary,
                                     ),
                                   ),
                                   Text(
                                     '알림 발생 시 소리 재생',
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.grey[500],
+                                      color: colors.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -274,7 +286,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 value: _soundEnabled,
                                 onChanged: (v) =>
                                     setState(() => _soundEnabled = v),
-                                activeThumbColor: Colors.black,
+                                activeThumbColor: colors.textPrimary,
                               ),
                             ],
                           ),
@@ -287,18 +299,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     '진동',
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
+                                      color: colors.textPrimary,
                                     ),
                                   ),
                                   Text(
                                     '알림 발생 시 진동 (모바일)',
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.grey[500],
+                                      color: colors.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -307,7 +320,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 value: _vibrationEnabled,
                                 onChanged: (v) =>
                                     setState(() => _vibrationEnabled = v),
-                                activeThumbColor: Colors.black,
+                                activeThumbColor: colors.textPrimary,
                               ),
                             ],
                           ),
@@ -318,16 +331,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: () async {
-                                // 인앱 배너 표시
                                 context
                                     .read<NotificationProvider>()
                                     .triggerNotification();
-                                // OS 알림도 발송 (앱이 백그라운드일 때 보임)
                                 await NotificationService.showTestNotification();
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.black,
-                                foregroundColor: Colors.white,
+                                backgroundColor: colors.textPrimary,
+                                foregroundColor: colors.background,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(

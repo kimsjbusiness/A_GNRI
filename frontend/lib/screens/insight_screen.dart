@@ -1,40 +1,27 @@
 // 2면
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/report_provider.dart';
 import '../core/utils.dart';
+import '../core/theme.dart';
 import '../widgets/app_header.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/page_tab_bar.dart';
 import 'home_screen.dart';
 
 class InsightScreen extends StatelessWidget {
-  final Map<String, dynamic>? reportData;
-
-  const InsightScreen({
-    super.key,
-    this.reportData,
-  });
-
-  static const Map<String, dynamic> _defaultReportData = {
-    'mood': '밝음',
-    'confidence': '72%',
-    'themes': ['친환경 에너지', '반도체'],
-    'keywords': ['기후', '탄소감축', '경제회복', '반도체'],
-    'summary':
-        '현재 시장의 분위기는 밝으며, 유동성이 높다 판단되는 주식의 테마는 \'친환경 에너지\'와 \'반도체\'입니다.',
-    'reason':
-        '글로벌 기후 정상회의의 탄소 감축 합의와 아시아 태평양 지역의 경기 회복, 반도체 수출 증가가 함께 반영되었습니다.',
-    'positiveRatio': 0.72,
-    'negativeRatio': 0.28,
-  };
+  const InsightScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final now = DateTime.now();
-    final data = reportData ?? _defaultReportData;
+    final provider = context.watch<ReportProvider>();
+    final data = provider.insightData;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F6F8),
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -48,7 +35,7 @@ class InsightScreen extends StatelessWidget {
                     Navigator.pushReplacement(
                       context,
                       PageRouteBuilder(
-                        pageBuilder: (_, __, ___) => const HomeScreen(),
+                        pageBuilder: (ctx, a1, a2) => const HomeScreen(),
                         transitionDuration: Duration.zero,
                         reverseTransitionDuration: Duration.zero,
                       ),
@@ -60,19 +47,24 @@ class InsightScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _DateSection(dateText: formatDate(now)),
-                      const SizedBox(height: 18),
-                      PageTabBar(
-                        selectedPage: 2,
-                        insightData: data,
+                      _DateSection(
+                        dateText: formatDate(now),
+                        mood: data['mood'] as String,
                       ),
+                      const SizedBox(height: 18),
+                      const PageTabBar(selectedPage: 2),
                       const SizedBox(height: 28),
                       _MarketAnalysisCard(
                         data: data,
-                        onTap: () => _showMarketAnalysisBottomSheet(context, data),
+                        onTap: () =>
+                            _showMarketAnalysisBottomSheet(context, data),
                       ),
                       const SizedBox(height: 24),
-                      const _KeywordAnalysisCard(),
+                      _KeywordAnalysisCard(
+                        keywords: List<String>.from(
+                          data['keywords'] as List<dynamic>,
+                        ),
+                      ),
                       const SizedBox(height: 24),
                       _SentimentAnalysisCard(
                         positiveRatio: data['positiveRatio'] as double,
@@ -89,6 +81,7 @@ class InsightScreen extends StatelessWidget {
       ),
     );
   }
+
   void _showMarketAnalysisBottomSheet(
     BuildContext context,
     Map<String, dynamic> data,
@@ -98,10 +91,12 @@ class InsightScreen extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
+        final colors = context.colors;
         return Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFFF6F6F8),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          decoration: BoxDecoration(
+            color: colors.background,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           child: SafeArea(
             top: false,
@@ -117,13 +112,12 @@ class InsightScreen extends StatelessWidget {
                         width: 44,
                         height: 5,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFD3D3DA),
+                          color: colors.border,
                           borderRadius: BorderRadius.circular(999),
                         ),
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // 배지 + X버튼 (1면 스타일)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -135,16 +129,16 @@ class InsightScreen extends StatelessWidget {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: colors.surface,
                                 borderRadius: BorderRadius.circular(999),
-                                border: Border.all(color: const Color(0xFFE3E3E8)),
+                                border: Border.all(color: colors.border),
                               ),
                               child: Text(
                                 data['mood'] as String,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF666674),
+                                  color: colors.textSecondary,
                                 ),
                               ),
                             ),
@@ -185,13 +179,13 @@ class InsightScreen extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
+                              color: colors.chipBg,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.close,
                               size: 18,
-                              color: Colors.black54,
+                              color: colors.textSecondary,
                             ),
                           ),
                         ),
@@ -211,10 +205,10 @@ class InsightScreen extends StatelessWidget {
                           const SizedBox(width: 8),
                           Text(
                             data['mood'] as String,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF111111),
+                              color: colors.textPrimary,
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -261,9 +255,9 @@ class InsightScreen extends StatelessWidget {
                       title: '판단 근거',
                       child: Text(
                         data['reason'] as String,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
-                          color: Color(0xFF333333),
+                          color: colors.textPrimary,
                           height: 1.7,
                         ),
                       ),
@@ -297,11 +291,31 @@ class InsightScreen extends StatelessWidget {
 
 class _DateSection extends StatelessWidget {
   final String dateText;
+  final String mood;
 
-  const _DateSection({required this.dateText});
+  const _DateSection({required this.dateText, required this.mood});
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    final Color badgeBg;
+    final Color badgeColor;
+    final IconData badgeIcon;
+    if (mood == '어두움') {
+      badgeBg = const Color(0xFFFFEBEE);
+      badgeColor = const Color(0xFFE53935);
+      badgeIcon = Icons.trending_down;
+    } else if (mood == '보통') {
+      badgeBg = const Color(0xFFFFF8E1);
+      badgeColor = const Color(0xFFFFA000);
+      badgeIcon = Icons.trending_flat;
+    } else {
+      badgeBg = const Color(0xFFE8F7EC);
+      badgeColor = const Color(0xFF27AE60);
+      badgeIcon = Icons.trending_up;
+    }
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -311,18 +325,18 @@ class _DateSection extends StatelessWidget {
             children: [
               Text(
                 dateText,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF111111),
+                  color: colors.textPrimary,
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
+              Text(
                 '글로벌 뉴스 & 경제 리포트',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Color(0xFF9A9AA5),
+                  color: colors.textSecondary,
                 ),
               ),
             ],
@@ -331,23 +345,19 @@ class _DateSection extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            color: const Color(0xFFE8F7EC),
+            color: badgeBg,
             borderRadius: BorderRadius.circular(999),
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(
-                Icons.trending_up,
-                size: 16,
-                color: Color(0xFF27AE60),
-              ),
-              SizedBox(width: 6),
+              Icon(badgeIcon, size: 16, color: badgeColor),
+              const SizedBox(width: 6),
               Text(
-                '밝음',
+                mood,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF27AE60),
+                  color: badgeColor,
                 ),
               ),
             ],
@@ -369,6 +379,8 @@ class _MarketAnalysisCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -377,19 +389,19 @@ class _MarketAnalysisCard extends StatelessWidget {
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 26),
-          decoration: _cardDecoration(),
+          decoration: _cardDecoration(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                children: const [
+                children: [
                   Expanded(
                     child: Text(
                       '시장 분석',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF111111),
+                        color: colors.textPrimary,
                       ),
                     ),
                   ),
@@ -398,23 +410,23 @@ class _MarketAnalysisCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF8B8B96),
+                      color: colors.textSecondary,
                     ),
                   ),
-                  SizedBox(width: 2),
+                  const SizedBox(width: 2),
                   Icon(
                     Icons.chevron_right,
                     size: 18,
-                    color: Color(0xFF9A9AA5),
+                    color: colors.textSecondary,
                   ),
                 ],
               ),
               const SizedBox(height: 28),
-              const Text(
+              Text(
                 '시장 분위기',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Color(0xFF7A7A86),
+                  color: colors.textSecondary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -429,68 +441,69 @@ class _MarketAnalysisCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     data['mood'] as String,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF111111),
+                      color: colors.textPrimary,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: const Color(0xFFE3E3E8)),
+                      color: colors.chipBg,
+                      border: Border.all(color: colors.border),
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
                       '신뢰도: ${data['confidence']}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF333333),
+                        color: colors.textPrimary,
                       ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 22),
-              const Divider(height: 1, thickness: 1, color: Color(0xFFE8E8EC)),
+              Divider(height: 1, thickness: 1, color: colors.border),
               const SizedBox(height: 22),
-              const Text(
+              Text(
                 '주요 테마',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Color(0xFF7A7A86),
+                  color: colors.textSecondary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 10),
               Text(
                 (data['themes'] as List<dynamic>).join(' & '),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF111111),
+                  color: colors.textPrimary,
                 ),
               ),
               const SizedBox(height: 22),
-              const Divider(height: 1, thickness: 1, color: Color(0xFFE8E8EC)),
+              Divider(height: 1, thickness: 1, color: colors.border),
               const SizedBox(height: 22),
-              const Text(
+              Text(
                 '시장 동향 분석',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Color(0xFF7A7A86),
+                  color: colors.textSecondary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 10),
               Text(
                 data['summary'] as String,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
-                  color: Color(0xFF222222),
+                  color: colors.textPrimary,
                   height: 1.8,
                 ),
               ),
@@ -515,18 +528,21 @@ class _BottomSheetSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE3E3E8)),
-        boxShadow: const [
+        border: Border.all(color: colors.border),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x08000000),
+            color:
+                context.isDark ? Colors.transparent : const Color(0x08000000),
             blurRadius: 10,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -538,23 +554,19 @@ class _BottomSheetSection extends StatelessWidget {
               Container(
                 width: 34,
                 height: 34,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF1F1F5),
+                decoration: BoxDecoration(
+                  color: colors.iconBg,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  icon,
-                  size: 18,
-                  color: const Color(0xFF666674),
-                ),
+                child: Icon(icon, size: 18, color: colors.textSecondary),
               ),
               const SizedBox(width: 10),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF111111),
+                  color: colors.textPrimary,
                 ),
               ),
             ],
@@ -599,18 +611,20 @@ class _SheetKeywordChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F1F5),
+        color: colors.chipBg,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w700,
-          color: Color(0xFF555563),
+          color: colors.textSecondary,
         ),
       ),
     );
@@ -618,169 +632,46 @@ class _SheetKeywordChip extends StatelessWidget {
 }
 
 class _KeywordAnalysisCard extends StatelessWidget {
-  const _KeywordAnalysisCard();
+  final List<String> keywords;
+
+  const _KeywordAnalysisCard({required this.keywords});
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
-      decoration: _cardDecoration(),
+      decoration: _cardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           Text(
             '키워드 분석',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF111111),
+              color: colors.textPrimary,
             ),
           ),
-          SizedBox(height: 20),
-          _WordCloudBox(),
+          const SizedBox(height: 20),
+          keywords.isEmpty
+              ? Text(
+                  '키워드 데이터를 불러오는 중입니다.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: colors.textSecondary,
+                  ),
+                )
+              : Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: keywords
+                      .map((k) => _SheetKeywordChip(text: k))
+                      .toList(),
+                ),
         ],
-      ),
-    );
-  }
-}
-
-class _WordCloudBox extends StatelessWidget {
-  const _WordCloudBox();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 260,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7F7FA),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
-
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned(
-                top: 38,
-                left: width * 0.14,
-                child: const _WordCloudText(
-                  text: '기후변화',
-                  size: 28,
-                  color: Color(0xFF61A5FF),
-                ),
-              ),
-              Positioned(
-                top: 42,
-                right: width * 0.12,
-                child: const _WordCloudText(
-                  text: '탄소중립',
-                  size: 26,
-                  color: Color(0xFFC26BFF),
-                ),
-              ),
-              Positioned(
-                top: 82,
-                left: width * 0.44,
-                child: const _WordCloudText(
-                  text: 'AI',
-                  size: 30,
-                  color: Color(0xFFE84D9B),
-                ),
-              ),
-              Positioned(
-                top: 86,
-                right: width * 0.16,
-                child: const _WordCloudText(
-                  text: '반도체',
-                  size: 22,
-                  color: Color(0xFF16B96D),
-                ),
-              ),
-              Positioned(
-                top: 118,
-                left: width * 0.10,
-                child: const _WordCloudText(
-                  text: '신재생에너지',
-                  size: 20,
-                  color: Color(0xFFFFB21E),
-                ),
-              ),
-              Positioned(
-                top: 134,
-                left: width * 0.42,
-                child: const _WordCloudText(
-                  text: '경제성장',
-                  size: 16,
-                  color: Color(0xFFFF7B22),
-                ),
-              ),
-              Positioned(
-                top: 154,
-                right: width * 0.10,
-                child: const _WordCloudText(
-                  text: '기술투자',
-                  size: 16,
-                  color: Color(0xFFFF4D4D),
-                ),
-              ),
-              Positioned(
-                top: 178,
-                left: width * 0.18,
-                child: const _WordCloudText(
-                  text: '국제협력',
-                  size: 13,
-                  color: Color(0xFF5D7DFF),
-                ),
-              ),
-              Positioned(
-                top: 190,
-                left: width * 0.48,
-                child: const _WordCloudText(
-                  text: '친환경',
-                  size: 17,
-                  color: Color(0xFF00BFA5),
-                ),
-              ),
-              Positioned(
-                top: 218,
-                right: width * 0.18,
-                child: const _WordCloudText(
-                  text: '디지털전환',
-                  size: 13,
-                  color: Color(0xFF4ECDC4),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _WordCloudText extends StatelessWidget {
-  final String text;
-  final double size;
-  final Color color;
-
-  const _WordCloudText({
-    required this.text,
-    required this.size,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: size,
-        fontWeight: FontWeight.w800,
-        color: color,
       ),
     );
   }
@@ -797,19 +688,21 @@ class _SentimentAnalysisCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 26),
-      decoration: _cardDecoration(),
+      decoration: _cardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             '감성 분석 상세',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF111111),
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: 24),
@@ -847,6 +740,8 @@ class _SentimentBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -854,18 +749,18 @@ class _SentimentBar extends StatelessWidget {
           children: [
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: Color(0xFF333333),
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w500,
               ),
             ),
             const Spacer(),
             Text(
               valueText,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: Color(0xFF111111),
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -877,7 +772,7 @@ class _SentimentBar extends StatelessWidget {
           child: LinearProgressIndicator(
             minHeight: 7,
             value: ratio,
-            backgroundColor: const Color(0xFFE9E9EE),
+            backgroundColor: context.colors.border,
             valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
         ),
@@ -886,16 +781,17 @@ class _SentimentBar extends StatelessWidget {
   }
 }
 
-BoxDecoration _cardDecoration() {
+BoxDecoration _cardDecoration(BuildContext context) {
+  final colors = context.colors;
   return BoxDecoration(
-    color: Colors.white,
+    color: colors.surface,
     borderRadius: BorderRadius.circular(10),
-    border: Border.all(color: const Color(0xFFE3E3E8)),
-    boxShadow: const [
+    border: Border.all(color: colors.border),
+    boxShadow: [
       BoxShadow(
-        color: Color(0x05000000),
+        color: context.isDark ? Colors.transparent : const Color(0x05000000),
         blurRadius: 6,
-        offset: Offset(0, 2),
+        offset: const Offset(0, 2),
       ),
     ],
   );

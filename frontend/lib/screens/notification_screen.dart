@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/notification_provider.dart';
 import '../widgets/app_header.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../core/theme.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -42,7 +43,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   void initState() {
     super.initState();
-    // 화면 진입 시 배지 제거
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<NotificationProvider>().markAsRead();
     });
@@ -63,6 +63,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final hasUnread = _items.any((n) => !n.isRead);
 
     return Scaffold(
@@ -70,7 +71,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         child: Column(
           children: [
             const AppHeader(),
-            const Divider(height: 1, thickness: 1, color: Color(0xFFE3E3E8)),
+            Divider(height: 1, thickness: 1, color: colors.border),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
@@ -81,11 +82,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           '알림',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w800,
+                            color: colors.textPrimary,
                           ),
                         ),
                         if (hasUnread)
@@ -95,7 +97,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               '모두 읽음',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: Colors.grey[500],
+                                color: colors.textSecondary,
                               ),
                             ),
                           ),
@@ -104,7 +106,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     const SizedBox(height: 4),
                     Text(
                       '리포트 알림 내역을 확인하세요',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: colors.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     if (_items.isEmpty)
@@ -163,24 +168,28 @@ class _NotifCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+    final isDark = context.isDark;
+
+    final unreadBg = isDark ? const Color(0xFF1A2348) : const Color(0xFFF0F4FF);
+    final unreadBorder =
+        isDark ? const Color(0xFF2A3560) : const Color(0xFFD0DCFF);
+
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: item.isRead ? Colors.white : const Color(0xFFF0F4FF),
+          color: item.isRead ? colors.surface : unreadBg,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: item.isRead
-                ? Colors.grey.shade200
-                : const Color(0xFFD0DCFF),
+            color: item.isRead ? colors.border : unreadBorder,
           ),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 앱 아이콘
             Container(
               width: 40,
               height: 40,
@@ -205,14 +214,14 @@ class _NotifCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey[600],
+                          color: colors.textSecondary,
                         ),
                       ),
                       Text(
                         item.date,
                         style: TextStyle(
                           fontSize: 11,
-                          color: Colors.grey[400],
+                          color: colors.textSecondary,
                         ),
                       ),
                     ],
@@ -224,13 +233,16 @@ class _NotifCard extends StatelessWidget {
                       fontSize: 14,
                       fontWeight:
                           item.isRead ? FontWeight.w500 : FontWeight.w700,
-                      color: Colors.black87,
+                      color: colors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     item.subtitle,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colors.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -260,16 +272,18 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.only(top: 60),
         child: Column(
           children: [
-            Icon(Icons.notifications_none, size: 48, color: Colors.grey[300]),
+            Icon(Icons.notifications_none, size: 48, color: colors.border),
             const SizedBox(height: 12),
             Text(
               '알림이 없습니다',
-              style: TextStyle(fontSize: 15, color: Colors.grey[400]),
+              style: TextStyle(fontSize: 15, color: colors.textSecondary),
             ),
           ],
         ),
