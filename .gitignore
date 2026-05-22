@@ -1,0 +1,45 @@
+# ==========================================
+# A-GNRI Project Global Git Ignore Patterns
+# ==========================================
+
+# Python Byte-code & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Python virtual environment
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment Variables & Sensitive Credentials
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.staging
+.env.example.actual
+.env.*
+!**/.env.example
+
+# IDE specific settings (PyCharm, Android Studio, VS Code, etc.)
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS temporary files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# Log files
+*.log

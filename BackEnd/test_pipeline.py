@@ -6,8 +6,9 @@ import os
 # backend 디렉토리를 path에 추가
 sys.path.append(os.path.join(os.getcwd(), "backend"))
 
-# .env 로드를 위해 환경 변수 설정
-os.environ["DATABASE_URL"] = "postgresql+asyncpg://dbadmin:qlalfqjsgh1234@localhost:25725/Main"
+# .env 파일에서 환경 변수 로드
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 from app.services.report_pipeline import run_daily_report_pipeline
 from app.core.database import engine, Base
