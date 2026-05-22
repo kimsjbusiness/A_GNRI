@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/notification_provider.dart';
+import '../providers/theme_provider.dart';
+import '../core/theme.dart';
 
 class AppHeader extends StatelessWidget {
   const AppHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Container(
-      color: Colors.white,
+      color: colors.header,
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
       child: Row(
         children: [
@@ -22,32 +26,34 @@ class AppHeader extends StatelessWidget {
             child: const Center(child: Text('🌎')),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Global News Report',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: colors.textPrimary,
+                  ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
                   '전세계 통합 뉴스 & 경제 리포트',
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                  style: TextStyle(fontSize: 13, color: colors.textSecondary),
                 ),
               ],
             ),
           ),
-          // 알림 벨 (읽지 않은 알림 있을 때 빨간 점)
           Consumer<NotificationProvider>(
             builder: (context, provider, _) => GestureDetector(
-              onTap: () {
-                Navigator.pushReplacementNamed(context, '/notifications');
-              },
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, '/notifications'),
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  const Icon(Icons.notifications_none),
+                  Icon(Icons.notifications_none, color: colors.textPrimary),
                   if (provider.hasUnread)
                     Positioned(
                       right: -2,
@@ -66,9 +72,22 @@ class AppHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          const Icon(Icons.dark_mode_outlined),
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, _) => GestureDetector(
+              onTap: themeProvider.toggle,
+              child: Icon(
+                themeProvider.isDark
+                    ? Icons.light_mode_outlined
+                    : Icons.dark_mode_outlined,
+                color: colors.textPrimary,
+              ),
+            ),
+          ),
           const SizedBox(width: 8),
-          const Icon(Icons.settings_outlined),
+          GestureDetector(
+            onTap: () => Navigator.pushReplacementNamed(context, '/settings'),
+            child: Icon(Icons.settings_outlined, color: colors.textPrimary),
+          ),
         ],
       ),
     );

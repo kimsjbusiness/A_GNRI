@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/notification_provider.dart';
 import '../services/notification_service.dart';
+import '../core/theme.dart';
 
 class InAppBannerOverlay extends StatefulWidget {
   final Widget child;
@@ -102,6 +103,8 @@ class _Banner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return GestureDetector(
       onTap: onTap,
       child: Padding(
@@ -110,7 +113,7 @@ class _Banner extends StatelessWidget {
           elevation: 12,
           shadowColor: Colors.black26,
           borderRadius: BorderRadius.circular(16),
-          color: Colors.white,
+          color: colors.surface,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
@@ -131,22 +134,29 @@ class _Banner extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Global News Report',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
+                          color: colors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 2),
-                      const Text(
+                      Text(
                         '오늘의 글로벌 리포트가 도착했습니다',
-                        style: TextStyle(fontSize: 13),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: colors.textPrimary,
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         '시장 분위기: 밝음 · 테마: 친환경 & AI 기술',
-                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: colors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -155,7 +165,11 @@ class _Banner extends StatelessWidget {
                   onTap: onClose,
                   child: Padding(
                     padding: const EdgeInsets.only(left: 8),
-                    child: Icon(Icons.close, size: 18, color: Colors.grey[400]),
+                    child: Icon(
+                      Icons.close,
+                      size: 18,
+                      color: colors.textSecondary,
+                    ),
                   ),
                 ),
               ],
