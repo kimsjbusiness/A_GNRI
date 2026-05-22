@@ -5,9 +5,19 @@ import 'providers/notification_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/report_provider.dart';
 import 'services/notification_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
+  final messaging = FirebaseMessaging.instance;
+  await messaging.requestPermission();
+
+  final token = await messaging.getToken();
+  debugPrint('FCM Token: $token');
+
   await NotificationService.init();
   runApp(
     MultiProvider(
