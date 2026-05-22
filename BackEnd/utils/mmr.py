@@ -31,7 +31,7 @@ def extract_top_sentences_mmr(sentences, top_n=3, diversity=0.7):
     if len(sentences) <= top_n:
         return sentences
     
-    vectorizer = TfidfVectorizer()
+    vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 4))
     
     doc = " ".join(sentences)
     all_texts = [doc] + sentences

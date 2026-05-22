@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     # API Keys
     NEWS_API_KEY: str
     GEMINI_API_KEY: str
+    GEMINI_MODEL: Optional[str] = None
     SDXL_API_URL: str
     SDXL_API_KEY: str
 

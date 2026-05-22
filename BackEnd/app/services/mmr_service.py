@@ -11,9 +11,11 @@ class MMRService:
         if len(sentences) <= top_n:
             return sentences
 
-        # Vectorize sentences
-        vectorizer = TfidfVectorizer()
-        tfidf_matrix = vectorizer.fit_transform(sentences)
+        vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 4))
+        try:
+            tfidf_matrix = vectorizer.fit_transform(sentences)
+        except ValueError:
+            return sentences[:top_n]
         
         # Similarity to the "Query" (here, we treat the average vector as the query/central theme)
         query_vec = np.asarray(tfidf_matrix.mean(axis=0))
