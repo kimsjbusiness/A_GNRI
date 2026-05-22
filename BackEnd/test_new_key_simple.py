@@ -9,7 +9,7 @@ def test_gemini_new_key():
     print(f"Testing with Key: {api_key[:10]}...")
     client = genai.Client(api_key=api_key)
     
-    models = ['gemini-2.0-flash-lite', 'gemini-1.5-flash', 'gemini-pro']
+    models = ['gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash']
     
     for model_id in models:
         print(f"\nTrying model: {model_id}")

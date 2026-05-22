@@ -1,5 +1,7 @@
 import json
 import re
+import asyncio
+import logging
 from typing import Dict, List
 
 from google import genai
@@ -7,12 +9,14 @@ from google.genai import errors
 
 from app.core.config import settings
 
+logger = logging.getLogger(__name__)
+
 
 class GeminiService:
     def __init__(self):
         self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        self.primary_model = "gemini-2.5-flash"
-        self.fallback_models = ["gemini-2.0-flash", "gemini-2.0-flash-lite"]
+        self.primary_model = "gemini-2.5-flash-lite"
+        self.fallback_models = ["gemini-2.5-flash", "gemini-2.0-flash"]
 
     def _model_candidates(self) -> List[str]:
         configured_model = getattr(settings, "GEMINI_MODEL", None)
@@ -25,21 +29,35 @@ class GeminiService:
 
         last_error: Exception | None = None
         for model_name in self._model_candidates():
-            try:
-                response = await self.client.aio.models.generate_content(
-                    model=model_name,
-                    contents=prompt,
-                )
-                text = (response.text or "").strip()
-                if text:
-                    return text
-                last_error = RuntimeError(f"Gemini model {model_name} returned no text.")
-            except errors.APIError as exc:
-                last_error = exc
-                if exc.code in {401, 403}:
-                    raise
-            except Exception as exc:
-                last_error = exc
+            retries = 3
+            backoff = 4.0
+            for attempt in range(retries):
+                try:
+                    response = await self.client.aio.models.generate_content(
+                        model=model_name,
+                        contents=prompt,
+                    )
+                    text = (response.text or "").strip()
+                    if text:
+                        return text
+                    last_error = RuntimeError(f"Gemini model {model_name} returned no text.")
+                    break
+                except errors.APIError as exc:
+                    last_error = exc
+                    if exc.code in {401, 403}:
+                        raise
+                    if exc.code == 429:
+                        logger.warning(
+                            "Gemini API rate limit (429) hit for model %s. Retrying in %ss (attempt %s/%s)...",
+                            model_name, backoff, attempt + 1, retries
+                        )
+                        await asyncio.sleep(backoff)
+                        backoff *= 2.0
+                        continue
+                    break
+                except Exception as exc:
+                    last_error = exc
+                    break
 
         raise RuntimeError(f"Gemini generation failed for all configured models: {last_error}")
 
