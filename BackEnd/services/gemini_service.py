@@ -1,5 +1,7 @@
 import os
 import re
+import time
+import logging
 from typing import Iterable, List
 
 from dotenv import load_dotenv
@@ -8,9 +10,11 @@ from google.genai import errors
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-FALLBACK_MODELS = ["gemini-2.0-flash", "gemini-2.0-flash-lite"]
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
+FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"]
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
@@ -26,20 +30,35 @@ def _generate_text(prompt: str) -> str:
 
     last_error: Exception | None = None
     for model_name in _model_candidates():
-        try:
-            response = client.models.generate_content(model=model_name, contents=prompt)
-            text = (response.text or "").strip()
-            if text:
-                return text
-            last_error = RuntimeError(f"Gemini model {model_name} returned no text.")
-        except errors.APIError as exc:
-            last_error = exc
-            if exc.code in {401, 403}:
-                raise
-        except Exception as exc:
-            last_error = exc
+        retries = 3
+        backoff = 4.0
+        for attempt in range(retries):
+            try:
+                response = client.models.generate_content(model=model_name, contents=prompt)
+                text = (response.text or "").strip()
+                if text:
+                    return text
+                last_error = RuntimeError(f"Gemini model {model_name} returned no text.")
+                break
+            except errors.APIError as exc:
+                last_error = exc
+                if exc.code in {401, 403}:
+                    raise
+                if exc.code == 429:
+                    logger.warning(
+                        "Gemini API rate limit (429) hit for model %s. Retrying in %ss (attempt %s/%s)...",
+                        model_name, backoff, attempt + 1, retries
+                    )
+                    time.sleep(backoff)
+                    backoff *= 2.0
+                    continue
+                break
+            except Exception as exc:
+                last_error = exc
+                break
 
     raise RuntimeError(f"Gemini generation failed for all configured models: {last_error}")
+
 
 
 def _clean_lines(text: str, limit: int | None = None) -> List[str]:
