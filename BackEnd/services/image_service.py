@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SDXL_API_URL = os.getenv("SDXL_API_URL", "https://api-inference.huggingface.co/models/stabilityai/sdxl-turbo")
+SDXL_API_URL = os.getenv("SDXL_API_URL", "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell")
 SDXL_API_KEY = os.getenv("SDXL_API_KEY")
 
 def generate_image(prompt):
