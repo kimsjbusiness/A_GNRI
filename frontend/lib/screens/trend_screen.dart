@@ -126,22 +126,23 @@ class _TrendItem extends StatelessWidget {
   const _TrendItem({required this.trend});
 
   Color _circleBgColor(int rank) {
-    switch (rank) {
-      case 1:
-        return const Color(0xFF111111);
-      case 2:
-        return const Color(0xFF444451);
-      case 3:
-        return const Color(0xFF777780);
-      case 4:
-        return const Color(0xFFAAAAAB);
-      default:
-        return const Color(0xFFD3D3DA);
+    if (rank == 1) {
+      return const Color(0xFF111111);
     }
+
+    if (rank <= 3) {
+      return const Color(0xFF444451);
+    }
+
+    if (rank <= 6) {
+      return const Color(0xFF8A8A94);
+    }
+
+    return const Color(0xFFD3D3DA);
   }
 
   Color _circleTextColor(int rank) {
-    return rank <= 4 ? Colors.white : const Color(0xFF888896);
+    return rank <= 6 ? Colors.white : const Color(0xFF888896);
   }
 
   Future<void> _openNewsSearch(BuildContext context, String keyword) async {
