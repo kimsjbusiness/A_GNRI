@@ -1,0 +1,123 @@
+import 'package:flutter/material.dart';
+import '../core/theme.dart';
+import '../screens/home_screen.dart';
+import '../screens/archive_screen.dart';
+import '../screens/settings_screen.dart';
+
+class BottomNavBar extends StatelessWidget {
+  final int currentIndex;
+
+  const BottomNavBar({
+    super.key,
+    required this.currentIndex,
+  });
+
+  void _onTap(BuildContext context, int index) {
+    if (index == currentIndex) return;
+
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const ArchiveScreen()),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const SettingsScreen()),
+        );
+        break;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Container(
+      height: 86,
+      decoration: BoxDecoration(
+        color: colors.header,
+        border: Border(
+          top: BorderSide(color: colors.border, width: 1),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _NavItem(
+            icon: Icons.description_outlined,
+            label: '리포트',
+            selected: currentIndex == 0,
+            onTap: () => _onTap(context, 0),
+          ),
+          _NavItem(
+            icon: Icons.history,
+            label: '기록',
+            selected: currentIndex == 1,
+            onTap: () => _onTap(context, 1),
+          ),
+          _NavItem(
+            icon: Icons.settings_outlined,
+            label: '설정',
+            selected: currentIndex == 2,
+            onTap: () => _onTap(context, 2),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final color = selected ? colors.textPrimary : const Color(0xFF8A8A95);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: SizedBox(
+          width: 72,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: color, size: 22),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
