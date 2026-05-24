@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/notification_provider.dart';
+import '../providers/report_provider.dart';
 import '../providers/theme_provider.dart';
 import '../core/theme.dart';
 
@@ -55,6 +56,39 @@ class AppHeader extends StatelessWidget {
                 ],
               ),
             ),
+            Consumer<ReportProvider>(
+              builder: (context, reportProvider, _) {
+                final running = reportProvider.isPipelineRunning;
+                return GestureDetector(
+                  onTap: running ? null : () => reportProvider.triggerPipeline(),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Icon(
+                        Icons.refresh,
+                        color: running
+                            ? colors.textSecondary
+                            : colors.textPrimary,
+                      ),
+                      if (running)
+                        Positioned(
+                          right: -3,
+                          bottom: -3,
+                          child: SizedBox(
+                            width: 11,
+                            height: 11,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 1.5,
+                              color: colors.textSecondary,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 8),
             Consumer<NotificationProvider>(
               builder: (context, provider, _) => GestureDetector(
                 onTap: () =>
