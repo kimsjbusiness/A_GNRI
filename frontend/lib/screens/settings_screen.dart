@@ -14,7 +14,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 0);
+  late TimeOfDay _selectedTime;
   bool _soundEnabled = true;
   bool _vibrationEnabled = true;
   bool _timeExpanded = false;
@@ -25,6 +25,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedTime = context.read<NotificationProvider>().notificationTime;
     _hourCtrl = FixedExtentScrollController(initialItem: _selectedTime.hour);
     _minCtrl = FixedExtentScrollController(initialItem: _selectedTime.minute);
     _initNotification();
@@ -116,12 +117,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           // 알림 시간 행
                           GestureDetector(
                             onTap: () {
-                              final wasExpanded = _timeExpanded;
                               setState(() => _timeExpanded = !_timeExpanded);
-                              if (wasExpanded) {
-                                NotificationService.scheduleDailyNotification(
-                                    _selectedTime);
-                              }
                             },
                             behavior: HitTestBehavior.opaque,
                             child: Row(
@@ -169,88 +165,197 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             child: _timeExpanded
                                 ? Padding(
                                     padding: const EdgeInsets.only(top: 12),
-                                    child: SizedBox(
-                                      height: 140,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          SizedBox(
-                                            width: 64,
-                                            child: ListWheelScrollView
-                                                .useDelegate(
-                                              controller: _hourCtrl,
-                                              itemExtent: 44,
-                                              perspective: 0.003,
-                                              onSelectedItemChanged: (v) =>
-                                                  setState(() {
-                                                _selectedTime = TimeOfDay(
-                                                  hour: v,
-                                                  minute: _selectedTime.minute,
-                                                );
-                                              }),
-                                              childDelegate:
-                                                  ListWheelChildBuilderDelegate(
-                                                childCount: 24,
-                                                builder: (_, i) => Center(
-                                                  child: Text(
-                                                    i.toString().padLeft(2, '0'),
-                                                    style: TextStyle(
-                                                      fontSize: 26,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: colors.textPrimary,
+                                    child: Column(
+                                      children: [
+                                        SizedBox(
+                                          height: 140,
+                                          child: Stack(
+                                            alignment: Alignment.center,
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.center,
+                                                children: [
+                                                  SizedBox(
+                                                    width: 64,
+                                                    height: 140,
+                                                    child: ListWheelScrollView
+                                                        .useDelegate(
+                                                      controller: _hourCtrl,
+                                                      itemExtent: 44,
+                                                      perspective: 0.003,
+                                                      physics: const FixedExtentScrollPhysics(),
+                                                      onSelectedItemChanged:
+                                                          (v) => setState(() {
+                                                        _selectedTime =
+                                                            TimeOfDay(
+                                                          hour: v,
+                                                          minute: _selectedTime
+                                                              .minute,
+                                                        );
+                                                      }),
+                                                      childDelegate:
+                                                          ListWheelChildBuilderDelegate(
+                                                        childCount: 24,
+                                                        builder: (_, i) =>
+                                                            Center(
+                                                          child: Text(
+                                                            i
+                                                                .toString()
+                                                                .padLeft(
+                                                                    2, '0'),
+                                                            style: TextStyle(
+                                                              fontSize: 26,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              color: colors
+                                                                  .textPrimary,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
                                                     ),
                                                   ),
+                                                  SizedBox(
+                                                    height: 140,
+                                                    child: Center(
+                                                      child: Text(
+                                                        ':',
+                                                        style: TextStyle(
+                                                          fontSize: 26,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          color: colors
+                                                              .textPrimary,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  SizedBox(
+                                                    width: 64,
+                                                    height: 140,
+                                                    child: ListWheelScrollView
+                                                        .useDelegate(
+                                                      controller: _minCtrl,
+                                                      itemExtent: 44,
+                                                      perspective: 0.003,
+                                                      physics: const FixedExtentScrollPhysics(),
+                                                      onSelectedItemChanged:
+                                                          (v) => setState(() {
+                                                        _selectedTime =
+                                                            TimeOfDay(
+                                                          hour:
+                                                              _selectedTime.hour,
+                                                          minute: v,
+                                                        );
+                                                      }),
+                                                      childDelegate:
+                                                          ListWheelChildBuilderDelegate(
+                                                        childCount: 60,
+                                                        builder: (_, i) =>
+                                                            Center(
+                                                          child: Text(
+                                                            i
+                                                                .toString()
+                                                                .padLeft(
+                                                                    2, '0'),
+                                                            style: TextStyle(
+                                                              fontSize: 26,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              color: colors
+                                                                  .textPrimary,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              // 선택된 항목 중앙 표시선
+                                              IgnorePointer(
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Container(
+                                                      height: 44,
+                                                      margin: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 12),
+                                                      decoration: BoxDecoration(
+                                                        border: Border.symmetric(
+                                                          horizontal:
+                                                              BorderSide(
+                                                            color: colors
+                                                                .textSecondary
+                                                                .withValues(
+                                                                    alpha:
+                                                                        0.35),
+                                                            width: 1.5,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
-                                            ),
+                                            ],
                                           ),
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: 2),
-                                            child: Text(
-                                              ':',
+                                        ),
+                                        const SizedBox(height: 12),
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: ElevatedButton(
+                                            onPressed: () async {
+                                              setState(
+                                                  () => _timeExpanded = false);
+                                              context.read<NotificationProvider>().setNotificationTime(_selectedTime);
+                                              await NotificationService
+                                                  .scheduleDailyNotification(
+                                                      _selectedTime);
+                                              if (context.mounted) {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      '알림 시간이 ${_formatTime(_selectedTime)}로 설정되었습니다',
+                                                    ),
+                                                    duration: const Duration(
+                                                        seconds: 2),
+                                                    behavior: SnackBarBehavior
+                                                        .floating,
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  colors.textPrimary,
+                                              foregroundColor:
+                                                  colors.background,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 12),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                            ),
+                                            child: const Text(
+                                              '저장',
                                               style: TextStyle(
-                                                fontSize: 26,
-                                                fontWeight: FontWeight.w600,
-                                                color: colors.textPrimary,
-                                              ),
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w700),
                                             ),
                                           ),
-                                          SizedBox(
-                                            width: 64,
-                                            child: ListWheelScrollView
-                                                .useDelegate(
-                                              controller: _minCtrl,
-                                              itemExtent: 44,
-                                              perspective: 0.003,
-                                              onSelectedItemChanged: (v) =>
-                                                  setState(() {
-                                                _selectedTime = TimeOfDay(
-                                                  hour: _selectedTime.hour,
-                                                  minute: v,
-                                                );
-                                              }),
-                                              childDelegate:
-                                                  ListWheelChildBuilderDelegate(
-                                                childCount: 60,
-                                                builder: (_, i) => Center(
-                                                  child: Text(
-                                                    i.toString().padLeft(2, '0'),
-                                                    style: TextStyle(
-                                                      fontSize: 26,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: colors.textPrimary,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                   )
                                 : const SizedBox.shrink(),

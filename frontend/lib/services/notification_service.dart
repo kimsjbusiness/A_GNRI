@@ -8,6 +8,7 @@ const _channelId = 'daily_report';
 const _channelName = '일일 리포트';
 const _scheduledId = 0;
 const _testId = 1;
+const _reportReadyId = 2;
 
 class NotificationService {
   static final GlobalKey<NavigatorState> navigatorKey =
@@ -79,6 +80,23 @@ class NotificationService {
       ),
       scheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
+    );
+  }
+
+  static Future<void> showReportReadyNotification() async {
+    await _plugin.show(
+      _reportReadyId,
+      'A_GNRI 리포트 완료',
+      '최신 글로벌 뉴스 리포트가 업데이트되었습니다!',
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          _channelId,
+          _channelName,
+          importance: Importance.high,
+          priority: Priority.high,
+          styleInformation: BigTextStyleInformation(''),
+        ),
+      ),
     );
   }
 
