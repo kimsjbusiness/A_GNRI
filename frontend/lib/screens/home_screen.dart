@@ -1,4 +1,6 @@
+
 // 1면(홈)
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -165,7 +167,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: NewsCard(
                     data: entry.value,
                     imageBytes: provider.imageAt(entry.key),
-                    onTap: () => _showNewsBottomSheet(context, entry.value),
+                    onTap: () => _showNewsBottomSheet(
+                      context,
+                      entry.value,
+                      provider.imageAt(entry.key),
+                    ),
                   ),
                 ),
               ),
@@ -191,7 +197,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showNewsBottomSheet(BuildContext context, NewsCardData card) {
+  void _showNewsBottomSheet(
+    BuildContext context,
+    NewsCardData card,
+    Uint8List? imageBytes,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -311,15 +321,23 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         border: Border.all(color: sheetColors.border),
                       ),
-                      child: Center(
-                        child: Icon(
-                          card.category == '기후'
-                              ? Icons.public
-                              : Icons.show_chart,
-                          size: 72,
-                          color: sheetColors.textSecondary,
-                        ),
-                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: imageBytes != null
+                          ? Image.memory(
+                              imageBytes,
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                            )
+                          : Center(
+                              child: Icon(
+                                card.category == '기후'
+                                    ? Icons.public
+                                    : Icons.show_chart,
+                                size: 72,
+                                color: sheetColors.textSecondary,
+                              ),
+                            ),
                     ),
                     const SizedBox(height: 20),
                     Text(
