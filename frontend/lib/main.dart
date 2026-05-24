@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'data/providers/report_state_provider.dart';
+
 import 'core/theme/app_theme.dart';
-import 'views/main_layout.dart';
+import 'data/providers/report_state_provider.dart';
 import 'services/firebase_service.dart';
 import 'services/notification_service.dart';
+import 'views/main_layout.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Fail-safe Firebase & Notification Services initialization
   final firebaseService = FirebaseService();
   await firebaseService.initialize();
 
-  final notificationService = NotificationService();
-  await notificationService.initialize();
+  try {
+    await NotificationService.init();
+  } catch (e) {
+    debugPrint('Notification init failed: $e');
+  }
 
   runApp(const MyApp());
 }

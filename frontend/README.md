@@ -75,3 +75,65 @@ flutterfire configure
 ```bash
 flutter run
 ```
+---
+
+## 📁 프로젝트 폴더 구조 (수정본)
+```
+A-GNRI/
+├── frontend/                         # Flutter 앱 (프론트엔드)
+│   ├── lib/
+│   │   ├── main.dart                 # 앱 시작점 (runApp)
+│   │   ├── app.dart                  # MaterialApp, 테마, 라우팅 설정
+│   │
+│   │   ├── core/                     # 공통 요소
+│   │   │   ├── constants.dart        # API URL, 앱 설정값
+│   │   │   ├── theme.dart            # 색상, 텍스트 스타일, 테마
+│   │   │   └── utils.dart            # 날짜 포맷, 감성 변환 등
+│   │
+│   │   ├── models/                   # 데이터 모델 (API ↔ UI)
+│   │   │   ├── report_model.dart     # 전체 리포트 (1/2/3면)
+│   │   │   ├── archive_model.dart    # 과거 리포트
+│   │   │   └── settings_model.dart   # 사용자 설정
+│   │
+│   │   ├── providers/                # 상태관리 (Provider)
+│   │   │   ├── report_provider.dart  # 오늘 리포트 상태
+│   │   │   ├── archive_provider.dart # 과거 리포트 상태
+│   │   │   └── settings_provider.dart# 설정 상태
+│   │
+│   │   ├── services/                 # 외부 기능 처리
+│   │   │   ├── api_service.dart      # REST API 통신
+│   │   │   ├── notification_service.dart # 알림 기능
+│   │   │   ├── storage_service.dart  # 로컬 저장
+│   │   │   └── mock_service.dart     # 더미 데이터
+│   │
+│   │   ├── screens/                  # UI 화면
+│   │   │   ├── home_screen.dart      # 1면: 메인 뉴스
+│   │   │   ├── insight_screen.dart   # 2면: 시장 분석
+│   │   │   ├── trend_screen.dart     # 3면: 트렌드
+│   │   │   ├── archive_screen.dart   # 과거 리포트
+│   │   │   └── settings_screen.dart  # 설정 화면
+│   │
+│   │   └── widgets/                  # 공통 UI 컴포넌트
+│   │       ├── bottom_nav_bar.dart   # 하단 네비게이션
+│   │       ├── sentiment_chip.dart   # 감성 표시
+│   │       ├── section_card.dart     # 카드 UI
+│   │       └── state_views.dart      # 로딩/에러 UI
+│   │
+│   ├── assets/                       # 정적 리소스
+│   │   ├── icons/
+│   │   └── images/
+│   │
+│   └── pubspec.yaml                  # Flutter 설정
+│
+└── pipeline/                         # 데이터 생성 파이프라인 (백엔드)
+    ├── collectors/                   # 뉴스 수집 (News API)
+    ├── processors/                   # 번역, 요약, 감성 분석
+    ├── generators/                   # 이미지, 워드클라우드 생성
+    ├── services/                     # DB 저장, 트렌드 수집
+    ├── main.py                       # 실행 엔트리
+    ├── scheduler.py                  # 하루 1회 자동 실행
+    └── config.py                     # API 키, 설정값
+```
+
+---
+>>>>>>> SMC
