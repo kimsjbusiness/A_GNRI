@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/report_provider.dart';
 import '../core/utils.dart';
 import '../core/theme.dart';
@@ -9,6 +10,24 @@ import '../widgets/app_header.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/page_tab_bar.dart';
 import 'home_screen.dart';
+
+Future<void> _openNewsSearch(BuildContext context, String keyword) async {
+  final encodedKeyword = Uri.encodeComponent(keyword);
+  final uri = Uri.parse(
+    'https://news.google.com/search?q=$encodedKeyword&hl=ko&gl=KR&ceid=KR:ko',
+  );
+
+  final launched = await launchUrl(
+    uri,
+    mode: LaunchMode.platformDefault,
+  );
+
+  if (!launched && context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('뉴스 링크를 열 수 없습니다.')),
+    );
+  }
+}
 
 class InsightScreen extends StatelessWidget {
   const InsightScreen({super.key});
@@ -273,6 +292,10 @@ class InsightScreen extends StatelessWidget {
                             .map(
                               (keyword) => _SheetKeywordChip(
                                 text: keyword.toString(),
+                                onTap: () => _openNewsSearch(
+                                  context,
+                                  keyword.toString(),
+                                ),
                               ),
                             )
                             .toList(),
@@ -606,25 +629,49 @@ class _SheetThemeChip extends StatelessWidget {
 
 class _SheetKeywordChip extends StatelessWidget {
   final String text;
+  final VoidCallback? onTap;
 
-  const _SheetKeywordChip({required this.text});
+  const _SheetKeywordChip({
+    required this.text,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: colors.chipBg,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: colors.textSecondary,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: colors.chipBg,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                text,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: colors.textSecondary,
+                ),
+              ),
+              if (onTap != null) ...[
+                const SizedBox(width: 5),
+                Icon(
+                  Icons.open_in_new,
+                  size: 12,
+                  color: colors.textSecondary,
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
@@ -668,7 +715,12 @@ class _KeywordAnalysisCard extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: keywords
-                      .map((k) => _SheetKeywordChip(text: k))
+                      .map(
+                        (k) => _SheetKeywordChip(
+                          text: k,
+                          onTap: () => _openNewsSearch(context, k),
+                        ),
+                      )
                       .toList(),
                 ),
         ],

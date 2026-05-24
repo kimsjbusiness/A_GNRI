@@ -28,6 +28,15 @@ class ApiService {
         .toList();
   }
 
+  static Future<void> triggerPipeline() async {
+    await _dio.post('/test-trigger-pipeline');
+  }
+
+  static Future<Map<String, dynamic>> getPipelineStatus() async {
+    final res = await _dio.get('/reports/today/pipeline-status');
+    return res.data as Map<String, dynamic>;
+  }
+
   static Future<void> registerUser(
     String deviceToken,
     String notificationTime,

@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../models/report_model.dart';
 import '../services/api_service.dart';
+import '../services/notification_service.dart';
 
 class ReportProvider extends ChangeNotifier {
   DailyReport? _report;
@@ -12,6 +14,11 @@ class ReportProvider extends ChangeNotifier {
   List<ReportHistoryItem> _history = [];
   bool _isLoadingHistory = false;
 
+  bool _isPipelineRunning = false;
+  int _pipelineProgress = 0;
+  String _pipelineStatus = '';
+  Timer? _pollTimer;
+
   DailyReport? get report => _report;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -19,6 +26,10 @@ class ReportProvider extends ChangeNotifier {
 
   List<ReportHistoryItem> get history => _history;
   bool get isLoadingHistory => _isLoadingHistory;
+
+  bool get isPipelineRunning => _isPipelineRunning;
+  int get pipelineProgress => _pipelineProgress;
+  String get pipelineStatus => _pipelineStatus;
 
   Uint8List? imageAt(int index) {
     if (_report == null || index >= _report!.images.length) return null;
@@ -113,5 +124,54 @@ class ReportProvider extends ChangeNotifier {
       _isLoadingHistory = false;
       notifyListeners();
     }
+  }
+
+  Future<void> triggerPipeline() async {
+    if (_isPipelineRunning) return;
+    try {
+      await ApiService.triggerPipeline();
+    } catch (_) {
+      // 409(이미 실행 중) 포함 - 어떤 경우든 폴링으로 상태 추적
+    }
+    _isPipelineRunning = true;
+    _pipelineProgress = 0;
+    _pipelineStatus = '파이프라인 시작 중...';
+    notifyListeners();
+    // 서버가 파이프라인을 시작할 시간을 주고 폴링 시작
+    await Future.delayed(const Duration(seconds: 2));
+    _startPolling();
+  }
+
+  void _startPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
+      try {
+        final s = await ApiService.getPipelineStatus();
+        final running = (s['is_running'] as bool?) ?? false;
+        final progress = (s['progress'] as int?) ?? 0;
+        final statusText = (s['status'] as String?) ?? '';
+
+        _isPipelineRunning = running;
+        _pipelineProgress = progress;
+        _pipelineStatus = statusText;
+
+        if (!running) {
+          _pollTimer?.cancel();
+          notifyListeners();
+          if (progress == 100) {
+            await loadLatest();
+            await NotificationService.showReportReadyNotification();
+          }
+          return;
+        }
+        notifyListeners();
+      } catch (_) {}
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
   }
 }

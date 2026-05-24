@@ -1,4 +1,6 @@
+
 // 1면(홈)
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -152,6 +154,15 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (provider.isPipelineRunning || provider.pipelineProgress > 0)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _PipelineStatusCard(
+                    progress: provider.pipelineProgress,
+                    status: provider.pipelineStatus,
+                    isRunning: provider.isPipelineRunning,
+                  ),
+                ),
               _DateSection(
                 dateText: formatDate(now),
                 mood: insightData['mood'] as String,
@@ -165,7 +176,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: NewsCard(
                     data: entry.value,
                     imageBytes: provider.imageAt(entry.key),
-                    onTap: () => _showNewsBottomSheet(context, entry.value),
+                    onTap: () => _showNewsBottomSheet(
+                      context,
+                      entry.value,
+                      provider.imageAt(entry.key),
+                    ),
                   ),
                 ),
               ),
@@ -191,7 +206,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showNewsBottomSheet(BuildContext context, NewsCardData card) {
+  void _showNewsBottomSheet(
+    BuildContext context,
+    NewsCardData card,
+    Uint8List? imageBytes,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -311,15 +330,23 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         border: Border.all(color: sheetColors.border),
                       ),
-                      child: Center(
-                        child: Icon(
-                          card.category == '기후'
-                              ? Icons.public
-                              : Icons.show_chart,
-                          size: 72,
-                          color: sheetColors.textSecondary,
-                        ),
-                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: imageBytes != null
+                          ? Image.memory(
+                              imageBytes,
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                            )
+                          : Center(
+                              child: Icon(
+                                card.category == '기후'
+                                    ? Icons.public
+                                    : Icons.show_chart,
+                                size: 72,
+                                color: sheetColors.textSecondary,
+                              ),
+                            ),
                     ),
                     const SizedBox(height: 20),
                     Text(
@@ -450,6 +477,117 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+class _PipelineStatusCard extends StatelessWidget {
+  final int progress;
+  final String status;
+  final bool isRunning;
+
+  const _PipelineStatusCard({
+    required this.progress,
+    required this.status,
+    required this.isRunning,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final isDone = !isRunning && progress == 100;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+      decoration: BoxDecoration(
+        color: isDone
+            ? const Color(0xFFE8F7EC)
+            : colors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDone
+              ? const Color(0xFF27AE60)
+              : colors.border,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              if (isRunning)
+                SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: colors.textPrimary,
+                  ),
+                )
+              else
+                Icon(
+                  isDone ? Icons.check_circle_outline : Icons.error_outline,
+                  size: 16,
+                  color: isDone
+                      ? const Color(0xFF27AE60)
+                      : colors.textSecondary,
+                ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isRunning
+                      ? '리포트 최신화 중...'
+                      : isDone
+                          ? '최신화 완료!'
+                          : '최신화 완료',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: isDone
+                        ? const Color(0xFF27AE60)
+                        : colors.textPrimary,
+                  ),
+                ),
+              ),
+              Text(
+                '$progress%',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: isDone
+                      ? const Color(0xFF27AE60)
+                      : colors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: progress / 100,
+              minHeight: 6,
+              backgroundColor: colors.border,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                isDone
+                    ? const Color(0xFF27AE60)
+                    : colors.textPrimary,
+              ),
+            ),
+          ),
+          if (status.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              status,
+              style: TextStyle(
+                fontSize: 12,
+                color: colors.textSecondary,
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
