@@ -13,58 +13,39 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
-  final List<_NotifItem> _items = [
-    _NotifItem(
-      date: '오늘 09:00',
-      title: '오늘의 글로벌 리포트가 도착했습니다',
-      subtitle: '시장 분위기: 밝음 · 테마: 친환경 & AI 기술',
-      isRead: false,
-    ),
-    _NotifItem(
-      date: '2026년 4월 1일 09:00',
-      title: '어제의 글로벌 리포트가 도착했습니다',
-      subtitle: '시장 분위기: 어두움 · 테마: 방위주 & 에너지',
-      isRead: true,
-    ),
-    _NotifItem(
-      date: '2026년 3월 31일 09:00',
-      title: '글로벌 리포트가 도착했습니다',
-      subtitle: '시장 분위기: 보통 · 테마: 핀테크 & 물류',
-      isRead: true,
-    ),
-    _NotifItem(
-      date: '2026년 3월 30일 09:00',
-      title: '글로벌 리포트가 도착했습니다',
-      subtitle: '시장 분위기: 밝음 · 테마: 반도체 & 바이오',
-      isRead: true,
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<NotificationProvider>().markAsRead();
+      context.read<NotificationProvider>().syncDueScheduledNotification();
     });
   }
 
-  void _onTapItem(int index) {
-    setState(() => _items[index] = _items[index].copyWith(isRead: true));
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final time =
+        '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    final isToday =
+        date.year == now.year && date.month == now.month && date.day == now.day;
+    if (isToday) return '오늘 $time';
+    return '${date.year}년 ${date.month}월 ${date.day}일 $time';
+  }
+
+  void _onTapItem(AppNotificationItem item) {
+    context.read<NotificationProvider>().markItemAsRead(item.id);
     Navigator.pushReplacementNamed(context, '/');
   }
 
   void _markAllRead() {
-    setState(() {
-      for (int i = 0; i < _items.length; i++) {
-        _items[i] = _items[i].copyWith(isRead: true);
-      }
-    });
+    context.read<NotificationProvider>().markAsRead();
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final hasUnread = _items.any((n) => !n.isRead);
+    final provider = context.watch<NotificationProvider>();
+    final items = provider.items;
+    final hasUnread = provider.hasUnread;
 
     return Scaffold(
       body: SafeArea(
@@ -112,16 +93,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    if (_items.isEmpty)
+                    if (items.isEmpty)
                       const _EmptyState()
                     else
-                      ...List.generate(_items.length, (i) {
-                        final item = _items[i];
+                      ...List.generate(items.length, (i) {
+                        final item = items[i];
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: _NotifCard(
                             item: item,
-                            onTap: () => _onTapItem(i),
+                            dateText: _formatDate(item.createdAt),
+                            onTap: () => _onTapItem(item),
                           ),
                         );
                       }),
@@ -137,34 +119,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 }
 
-// ─── 알림 아이템 모델 ──────────────────────────────────────────────────────────
-class _NotifItem {
-  final String date;
-  final String title;
-  final String subtitle;
-  final bool isRead;
-
-  const _NotifItem({
-    required this.date,
-    required this.title,
-    required this.subtitle,
-    required this.isRead,
-  });
-
-  _NotifItem copyWith({bool? isRead}) => _NotifItem(
-        date: date,
-        title: title,
-        subtitle: subtitle,
-        isRead: isRead ?? this.isRead,
-      );
-}
-
 // ─── 알림 카드 ─────────────────────────────────────────────────────────────────
 class _NotifCard extends StatelessWidget {
-  final _NotifItem item;
+  final AppNotificationItem item;
+  final String dateText;
   final VoidCallback onTap;
 
-  const _NotifCard({required this.item, required this.onTap});
+  const _NotifCard({
+    required this.item,
+    required this.dateText,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -218,7 +183,7 @@ class _NotifCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        item.date,
+                        dateText,
                         style: TextStyle(
                           fontSize: 11,
                           color: colors.textSecondary,

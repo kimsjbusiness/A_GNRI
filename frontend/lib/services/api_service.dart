@@ -37,6 +37,13 @@ class ApiService {
     return res.data as Map<String, dynamic>;
   }
 
+  static Future<List<ReportKeyword>> getRealtimeTrends() async {
+    final res = await _dio.get('/reports/trends/realtime');
+    return (res.data as List)
+        .map((e) => ReportKeyword.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   static Future<void> registerUser(
     String deviceToken,
     String notificationTime,

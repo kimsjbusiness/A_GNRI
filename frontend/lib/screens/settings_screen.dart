@@ -32,10 +32,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _initNotification() async {
-    final granted = await NotificationService.requestPermission();
-    if (granted) {
-      await NotificationService.scheduleDailyNotification(_selectedTime);
-    }
+    await NotificationService.requestPermission();
   }
 
   @override

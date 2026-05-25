@@ -7,6 +7,7 @@ from app.schemas.pydantic import UserCreate, UserResponse
 
 router = APIRouter()
 
+@router.post("", response_model=UserResponse)
 @router.post("/", response_model=UserResponse)
 async def register_or_update_user(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     # Check if user already exists by device_token
