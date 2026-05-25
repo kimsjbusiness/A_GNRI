@@ -114,7 +114,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           // 알림 시간 행
                           GestureDetector(
                             onTap: () {
-                              setState(() => _timeExpanded = !_timeExpanded);
+                              final expanding = !_timeExpanded;
+                              setState(() => _timeExpanded = expanding);
+                              if (expanding) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  _hourCtrl.jumpToItem(_selectedTime.hour);
+                                  _minCtrl.jumpToItem(_selectedTime.minute);
+                                });
+                              }
                             },
                             behavior: HitTestBehavior.opaque,
                             child: Row(
@@ -327,6 +334,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                                         seconds: 2),
                                                     behavior: SnackBarBehavior
                                                         .floating,
+                                                    margin: const EdgeInsets.only(
+                                                      bottom: 80,
+                                                      left: 16,
+                                                      right: 16,
+                                                    ),
                                                   ),
                                                 );
                                               }

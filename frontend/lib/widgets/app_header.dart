@@ -61,29 +61,9 @@ class AppHeader extends StatelessWidget {
                 final running = reportProvider.isPipelineRunning;
                 return GestureDetector(
                   onTap: running ? null : () => reportProvider.triggerPipeline(),
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Icon(
-                        Icons.refresh,
-                        color: running
-                            ? colors.textSecondary
-                            : colors.textPrimary,
-                      ),
-                      if (running)
-                        Positioned(
-                          right: -3,
-                          bottom: -3,
-                          child: SizedBox(
-                            width: 11,
-                            height: 11,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 1.5,
-                              color: colors.textSecondary,
-                            ),
-                          ),
-                        ),
-                    ],
+                  child: Icon(
+                    Icons.refresh,
+                    color: running ? colors.textSecondary : colors.textPrimary,
                   ),
                 );
               },
