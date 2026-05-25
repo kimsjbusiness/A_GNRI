@@ -1,17 +1,24 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'core/theme/app_theme.dart';
-import 'data/providers/report_state_provider.dart';
-import 'services/firebase_service.dart';
+import 'app.dart';
+import 'providers/notification_provider.dart';
+import 'providers/report_provider.dart';
+import 'providers/theme_provider.dart';
 import 'services/notification_service.dart';
-import 'views/main_layout.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final firebaseService = FirebaseService();
-  await firebaseService.initialize();
+  await Firebase.initializeApp();
+
+  final messaging = FirebaseMessaging.instance;
+  await messaging.requestPermission();
+
+  final token = await messaging.getToken();
+  debugPrint('FCM Token: $token');
 
   try {
     await NotificationService.init();
@@ -19,24 +26,14 @@ void main() async {
     debugPrint('Notification init failed: $e');
   }
 
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
+  runApp(
+    MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ReportStateProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => ReportProvider()),
       ],
-      child: MaterialApp(
-        title: 'Global News Integrator',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme,
-        home: const MainLayout(),
-      ),
-    );
-  }
+      child: const App(),
+    ),
+  );
 }

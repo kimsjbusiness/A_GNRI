@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/report_provider.dart';
 import '../core/utils.dart';
 import '../core/theme.dart';
@@ -125,75 +126,102 @@ class _TrendItem extends StatelessWidget {
   const _TrendItem({required this.trend});
 
   Color _circleBgColor(int rank) {
-    switch (rank) {
-      case 1:
-        return const Color(0xFF111111);
-      case 2:
-        return const Color(0xFF444451);
-      case 3:
-        return const Color(0xFF777780);
-      case 4:
-        return const Color(0xFFAAAAAB);
-      default:
-        return const Color(0xFFD3D3DA);
+    if (rank == 1) {
+      return const Color(0xFF111111);
     }
+
+    if (rank <= 3) {
+      return const Color(0xFF444451);
+    }
+
+    if (rank <= 6) {
+      return const Color(0xFF8A8A94);
+    }
+
+    return const Color(0xFFD3D3DA);
   }
 
   Color _circleTextColor(int rank) {
-    return rank <= 4 ? Colors.white : const Color(0xFF888896);
+    return rank <= 6 ? Colors.white : const Color(0xFF888896);
+  }
+
+  Future<void> _openNewsSearch(BuildContext context, String keyword) async {
+    final encodedKeyword = Uri.encodeComponent(keyword);
+    final uri = Uri.parse(
+      'https://news.google.com/search?q=$encodedKeyword&hl=ko&gl=KR&ceid=KR:ko',
+    );
+
+    final launched = await launchUrl(
+      uri,
+      mode: LaunchMode.platformDefault,
+    );
+
+    if (!launched && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('뉴스 링크를 열 수 없습니다.')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final rank = int.tryParse(trend['rank'] ?? '5') ?? 5;
+    final keyword = trend['keyword'] ?? '';
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: colors.surface,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: keyword.isEmpty ? null : () => _openNewsSearch(context, keyword),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: colors.border),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color: _circleBgColor(rank),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Text(
-                  trend['rank']!,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: _circleTextColor(rank),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: colors.border),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: _circleBgColor(rank),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      trend['rank'] ?? rank.toString(),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: _circleTextColor(rank),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                trend['keyword']!,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: colors.textPrimary,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    keyword,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: colors.textPrimary,
+                    ),
+                  ),
                 ),
-              ),
+                Icon(
+                  Icons.open_in_new,
+                  size: 16,
+                  color: colors.textSecondary,
+                ),
+              ],
             ),
-            Icon(
-              Icons.open_in_new,
-              size: 16,
-              color: colors.textSecondary,
-            ),
-          ],
+          ),
         ),
       ),
     );
