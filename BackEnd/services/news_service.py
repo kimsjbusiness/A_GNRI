@@ -20,11 +20,11 @@ GDP_DATA = {
     "it": 2.30,
     "br": 2.27,
     "ca": 2.24,
-    "ru": 1.90,
     "mx": 1.81,
     "kr": 1.78,
     "au": 1.74,
     "es": 1.68,
+    "tr": 1.57,
 }
 
 COUNTRY_QUERIES = {
@@ -38,11 +38,11 @@ COUNTRY_QUERIES = {
     "it": "Italy",
     "br": "Brazil",
     "ca": "Canada",
-    "ru": "Russia",
     "mx": "Mexico",
     "au": "Australia",
     "kr": "South Korea",
     "es": "Spain",
+    "tr": "Turkey",
 }
 
 

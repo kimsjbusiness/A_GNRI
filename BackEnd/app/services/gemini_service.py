@@ -122,8 +122,11 @@ class GeminiService:
             )
             summary_text = await self._generate_with_fallback(prompt)
             sentences = self._clean_lines(summary_text, limit=3)
-            if len(sentences) != 3:
-                raise RuntimeError(f"Expected 3 summary sentences for {country}, got {len(sentences)}.")
+            if not sentences:
+                sentences = [f"No significant news updates for {country} today."] * 3
+            elif len(sentences) < 3:
+                while len(sentences) < 3:
+                    sentences.append(sentences[0])
             all_summaries.extend(sentences)
         return all_summaries
 
@@ -144,13 +147,21 @@ class GeminiService:
             f"{english_text}"
         )
         text_out = await self._generate_with_fallback(prompt)
-        return self._clean_lines(text_out, limit=6)
+        sentences = self._clean_lines(text_out, limit=6)
+        if not sentences:
+            sentences = ["번역을 수행할 수 없습니다."] * 6
+        elif len(sentences) < 6:
+            while len(sentences) < 6:
+                sentences.append(sentences[0])
+        return sentences
 
     async def analyze_sentiment(self, korean_sentences: List[str]) -> str:
         combined = "\n".join(korean_sentences)
         prompt = (
-            "Analyze the overall market sentiment of these Korean news sentences. "
-            "Return exactly one Korean word from these options only: 어두움, 보통, 밝음.\n\n"
+            "Analyze the overall market sentiment and economic atmosphere of these Korean news sentences. "
+            "Be decisive and evaluate whether positive developments (such as stock market highs, rate cuts, or peace talks) "
+            "outweigh the negative risks, or vice versa. Avoid selecting '보통' (Neutral) unless the news is perfectly balanced. "
+            "Return exactly one Korean word from these options only: 어두움 (Negative/Bearish), 보통 (Neutral), 밝음 (Positive/Bullish).\n\n"
             f"{combined}"
         )
         sentiment = await self._generate_with_fallback(prompt)

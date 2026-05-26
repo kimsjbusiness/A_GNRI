@@ -22,11 +22,11 @@ class NewsService:
             "it": 2.30,
             "br": 2.27,
             "ca": 2.24,
-            "ru": 1.90,
             "mx": 1.81,
             "kr": 1.78,
             "au": 1.74,
             "es": 1.68,
+            "tr": 1.57,
         }
         self.country_queries = {
             "us": "United States",
@@ -39,11 +39,11 @@ class NewsService:
             "it": "Italy",
             "br": "Brazil",
             "ca": "Canada",
-            "ru": "Russia",
             "mx": "Mexico",
             "au": "Australia",
             "kr": "South Korea",
             "es": "Spain",
+            "tr": "Turkey",
         }
         self.total_gdp = sum(self.gdp_data.values())
         self.target_total = 50

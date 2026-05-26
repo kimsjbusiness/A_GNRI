@@ -50,13 +50,15 @@ async def run_daily_report_pipeline(force: bool = False, progress_callback=None)
             translated_by_country = {}
             for country, news_items in news_by_country.items():
                 if not news_items:
-                    raise RuntimeError(f"No news articles were fetched for country={country}.")
+                    logger.warning("No news articles were fetched for country=%s. Skipping this country.", country)
+                    continue
                 translated_by_country[country] = await gemini_service.translate_to_english(news_items)
 
             report_progress(40, "국가별 뉴스 요약을 생성 중입니다...")
             forty_five_sentences = await gemini_service.summarize_by_country(translated_by_country)
-            if len(forty_five_sentences) != 45:
-                raise RuntimeError(f"Expected 45 country summary sentences, got {len(forty_five_sentences)}.")
+            expected_sentences = len(translated_by_country) * 3
+            if len(forty_five_sentences) != expected_sentences:
+                raise RuntimeError(f"Expected {expected_sentences} country summary sentences, got {len(forty_five_sentences)}.")
 
             report_progress(55, "최종 한글 리포트 요약을 생성 중입니다...")
             final_summary_en = await gemini_service.final_summary(forty_five_sentences)
@@ -64,23 +66,31 @@ async def run_daily_report_pipeline(force: bool = False, progress_callback=None)
             if len(final_summaries_kr) != 6:
                 raise RuntimeError(f"Expected 6 Korean final summaries, got {len(final_summaries_kr)}.")
 
-            report_progress(65, "MMR 기반 핵심 3문장을 추출 중입니다...")
-            top_3_sentences = mmr_service.select_top_sentences(final_summaries_kr, top_n=3)
+            report_progress(65, "MMR 기반 대표 및 주요 뉴스를 추출 중입니다...")
+            featured_sentences = mmr_service.select_top_sentences(final_summaries_kr, top_n=2)
+            if len(featured_sentences) != 2:
+                raise RuntimeError(f"Expected 2 featured sentences, got {len(featured_sentences)}.")
+
+            remaining_sentences = [s for s in final_summaries_kr if s not in featured_sentences]
+            top_3_sentences = mmr_service.select_top_sentences(remaining_sentences, top_n=3)
             if len(top_3_sentences) != 3:
                 raise RuntimeError(f"Expected 3 MMR sentences, got {len(top_3_sentences)}.")
+
+            # 대표 카드용 2문장을 맨 앞으로 재정렬
+            final_summaries_kr = featured_sentences + remaining_sentences
 
             report_progress(75, "시장 분위기와 주식 테마를 분석 중입니다...")
             sentiment = await gemini_service.analyze_sentiment(final_summaries_kr)
             theme = await gemini_service.generate_stock_theme(final_summaries_kr)
             image_records = []
             try:
-                image_prompts = await gemini_service.translate_to_english(top_3_sentences)
+                image_prompts = await gemini_service.translate_to_english(featured_sentences)
             except Exception:
                 logger.exception("Image prompt translation failed. Skipping image generation.")
-                    image_prompts = []
+                image_prompts = []
 
             report_progress(85, "AI 뉴스 일러스트 이미지를 생성 중입니다...")
-            for sentence, prompt in zip(top_3_sentences, image_prompts):
+            for sentence, prompt in zip(featured_sentences, image_prompts):
                 try:
                     img_bytes = await image_service.generate_image(prompt)
                 except Exception:
@@ -90,11 +100,11 @@ async def run_daily_report_pipeline(force: bool = False, progress_callback=None)
                 if img_bytes:
                     image_records.append((sentence, img_bytes))
 
-            if len(image_records) != 3:
-                logger.warning("Expected 3 generated images, got %s. Saving report anyway.", len(image_records))
+            if len(image_records) != 2:
+                logger.warning("Expected 2 generated images, got %s. Saving report anyway.", len(image_records))
 
             report_progress(95, "실시간 인기 검색어 수집 및 최종 저장 중입니다...")
-            trending_data = await pytrends_service.get_top_10_keywords()
+            trending_data = await pytrends_service.get_top_10_keywords(final_summaries_kr)
             if len(trending_data) != 10:
                 raise RuntimeError(f"Expected 10 trending keywords, got {len(trending_data)}.")
 
