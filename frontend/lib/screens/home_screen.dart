@@ -103,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
               (summary) => NewsCardData(
                 country: '글로벌',
                 category: '국제',
-                title: _extractTitle(summary),
+                title: summary,
                 summary: summary,
               ),
             )

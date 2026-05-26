@@ -138,15 +138,6 @@ class NewsCard extends StatelessWidget {
                         height: 1.35,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      data.summary,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colors.textSecondary,
-                        height: 1.6,
-                      ),
-                    ),
                   ],
                 ),
               ),

@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
@@ -69,16 +69,21 @@ class ReportProvider extends ChangeNotifier {
         .where((s) => s.isNotEmpty)
         .toList();
 
+    final negativeRatio = 1.0 - positiveRatio;
+    final confidenceRatio = sentiment == '밝음'
+        ? positiveRatio
+        : (sentiment == '어두움' ? negativeRatio : 0.50);
+
     return {
       'mood': sentiment,
-      'confidence': '${(positiveRatio * 100).round()}%',
+      'confidence': '${(confidenceRatio * 100).round()}%',
       'themes': themes.isEmpty ? [r.stockTheme] : themes,
       'keywords': r.keywords.map((k) => k.keyword).toList(),
       'summary':
           '현재 시장 분위기는 $sentiment이며, 주목 테마는 ${themes.join(', ')}입니다.',
       'reason': r.top3Sentences.join(' '),
       'positiveRatio': positiveRatio,
-      'negativeRatio': 1.0 - positiveRatio,
+      'negativeRatio': negativeRatio,
     };
   }
 
