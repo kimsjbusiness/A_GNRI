@@ -79,15 +79,15 @@ class InsightScreen extends StatelessWidget {
                             _showMarketAnalysisBottomSheet(context, data),
                       ),
                       const SizedBox(height: 24),
+                      _SentimentAnalysisCard(
+                        positiveRatio: data['positiveRatio'] as double,
+                        negativeRatio: data['negativeRatio'] as double,
+                      ),
+                      const SizedBox(height: 24),
                       _KeywordAnalysisCard(
                         keywords: List<String>.from(
                           data['keywords'] as List<dynamic>,
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      _SentimentAnalysisCard(
-                        positiveRatio: data['positiveRatio'] as double,
-                        negativeRatio: data['negativeRatio'] as double,
                       ),
                     ],
                   ),
