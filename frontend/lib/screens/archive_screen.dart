@@ -399,32 +399,6 @@ class _ReportContent extends StatelessWidget {
             ],
           ),
         ),
-
-        // 키워드
-        if (report.keywords.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          _SectionTitle(title: '인기 트렌드 키워드', colors: colors),
-          const SizedBox(height: 10),
-          ...report.keywords.map((kw) => Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            decoration: BoxDecoration(
-              color: colors.surface,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: colors.border),
-            ),
-            child: ListTile(
-              dense: true,
-              leading: Text('${kw.ranking}',
-                  style: TextStyle(
-                      color: colors.textPrimary,
-                      fontWeight: FontWeight.bold)),
-              title: Text(kw.keyword,
-                  style: TextStyle(
-                      color: colors.textPrimary,
-                      fontWeight: FontWeight.w600)),
-            ),
-          )),
-        ],
       ],
     );
   }
