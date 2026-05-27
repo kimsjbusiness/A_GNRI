@@ -76,8 +76,22 @@ async def run_daily_report_pipeline(force: bool = False, progress_callback=None)
             if len(top_3_sentences) != 3:
                 raise RuntimeError(f"Expected 3 MMR sentences, got {len(top_3_sentences)}.")
 
-            # 대표 카드용 2문장을 맨 앞으로 재정렬
-            final_summaries_kr = featured_sentences + remaining_sentences
+            # 대표 카드용 2문장 각각에 대해 카드용 짧은 요약과 팝업용 상세 요약을 생성
+            try:
+                short_featured = await gemini_service.generate_short_sentences(featured_sentences)
+                detailed_featured = await gemini_service.generate_detailed_summaries(featured_sentences)
+                
+                # "짧은 요약||상세 요약" 포맷으로 결합
+                encoded_featured = [
+                    f"{short}||{detailed}"
+                    for short, detailed in zip(short_featured, detailed_featured)
+                ]
+            except Exception:
+                logger.exception("Failed to generate short/detailed summaries. Falling back to default sentences.")
+                encoded_featured = featured_sentences
+
+            # 대표 카드용 2문장(인코딩됨)을 맨 앞으로 재정렬
+            final_summaries_kr = encoded_featured + remaining_sentences
 
             report_progress(75, "시장 분위기와 주식 테마를 분석 중입니다...")
             sentiment = await gemini_service.analyze_sentiment(final_summaries_kr)

@@ -181,5 +181,36 @@ class GeminiService:
         )
         return (await self._generate_with_fallback(prompt)).splitlines()[0].strip()
 
+    async def generate_short_sentences(self, featured_sentences: List[str]) -> List[str]:
+        if not featured_sentences:
+            return []
+        
+        short_sentences = []
+        for sentence in featured_sentences:
+            prompt = (
+                f"다음 한글 뉴스 요약 문장을 바탕으로, 1면 카드에 어울리는 아주 짧고 핵심적인 한 줄 제목 또는 짧은 문장(띄어쓰기 포함 25~35자 내외)으로 다듬어 주세요. "
+                "꾸밈말이나 서두(예: '요약:', '제목:') 없이 최종 완성된 짧은 문장만 반환해 주세요:\n\n"
+                f"{sentence}"
+            )
+            short = await self._generate_with_fallback(prompt)
+            short_sentences.append(short)
+        return short_sentences
+
+    async def generate_detailed_summaries(self, featured_sentences: List[str]) -> List[str]:
+        if not featured_sentences:
+            return []
+        
+        detailed_summaries = []
+        for sentence in featured_sentences:
+            prompt = (
+                f"다음 글로벌 뉴스 요약 문장을 바탕으로, 신뢰성 있고 매끄러운 어조의 짧은 기사 형태의 상세 요약문(약 3~4문장, 200~300자 내외)을 자연스러운 한국어로 작성해 주세요. "
+                "배경 지식이나 추가적인 설명 등을 자연스럽게 포함하여 읽기 좋은 하나의 완성된 기사 문단으로 만들어 주세요. "
+                "설명이나 서두(예: '요약문:', '기사:') 없이 오직 본문 내용만 반환해 주세요:\n\n"
+                f"{sentence}"
+            )
+            detailed = await self._generate_with_fallback(prompt)
+            detailed_summaries.append(detailed)
+        return detailed_summaries
+
 
 gemini_service = GeminiService()

@@ -111,6 +111,24 @@ class InsightScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (context) {
         final colors = context.colors;
+        final mood = data['mood'] as String;
+        final Color moodColor;
+        final IconData moodIcon;
+        final Color moodBg;
+        if (mood == '어두움') {
+          moodColor = const Color(0xFFE53935);
+          moodIcon = Icons.trending_down;
+          moodBg = const Color(0xFFFFEBEE);
+        } else if (mood == '보통') {
+          moodColor = const Color(0xFFFFA000);
+          moodIcon = Icons.trending_flat;
+          moodBg = const Color(0xFFFFF8E1);
+        } else {
+          moodColor = const Color(0xFF27AE60);
+          moodIcon = Icons.trending_up;
+          moodBg = const Color(0xFFE8F7EC);
+        }
+
         return Container(
           decoration: BoxDecoration(
             color: colors.background,
@@ -168,24 +186,24 @@ class InsightScreen extends StatelessWidget {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFE8F7EC),
+                                color: moodBg,
                                 borderRadius: BorderRadius.circular(999),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(
-                                    Icons.trending_up,
+                                  Icon(
+                                    moodIcon,
                                     size: 14,
-                                    color: Color(0xFF27AE60),
+                                    color: moodColor,
                                   ),
                                   const SizedBox(width: 5),
                                   Text(
                                     '신뢰도 ${data['confidence']}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
-                                      color: Color(0xFF27AE60),
+                                      color: moodColor,
                                     ),
                                   ),
                                 ],
@@ -212,14 +230,14 @@ class InsightScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
                     _BottomSheetSection(
-                      icon: Icons.trending_up,
+                      icon: moodIcon,
                       title: '시장 분위기',
                       child: Row(
                         children: [
-                          const Icon(
-                            Icons.trending_up,
+                          Icon(
+                            moodIcon,
                             size: 18,
-                            color: Color(0xFF11B981),
+                            color: moodColor,
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -237,15 +255,15 @@ class InsightScreen extends StatelessWidget {
                               vertical: 5,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE8F7EC),
+                              color: moodBg,
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
                               '신뢰도 ${data['confidence']}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFF27AE60),
+                                color: moodColor,
                               ),
                             ),
                           ),
@@ -403,6 +421,19 @@ class _MarketAnalysisCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final mood = data['mood'] as String;
+    final Color moodColor;
+    final IconData moodIcon;
+    if (mood == '어두움') {
+      moodColor = const Color(0xFFE53935);
+      moodIcon = Icons.trending_down;
+    } else if (mood == '보통') {
+      moodColor = const Color(0xFFFFA000);
+      moodIcon = Icons.trending_flat;
+    } else {
+      moodColor = const Color(0xFF27AE60);
+      moodIcon = Icons.trending_up;
+    }
 
     return Material(
       color: Colors.transparent,
@@ -456,10 +487,10 @@ class _MarketAnalysisCard extends StatelessWidget {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  const Icon(
-                    Icons.trending_up,
+                  Icon(
+                    moodIcon,
                     size: 19,
-                    color: Color(0xFF11B981),
+                    color: moodColor,
                   ),
                   const SizedBox(width: 8),
                   Text(

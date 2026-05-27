@@ -2,6 +2,7 @@ class DailyReportModel {
   final int reportId;
   final String reportDate;
   final List<String> finalSummariesKr;
+  final List<String> detailedSummaries;
   final List<String> top3Sentences;
   final String marketSentiment;
   final String stockTheme;
@@ -12,6 +13,7 @@ class DailyReportModel {
     required this.reportId,
     required this.reportDate,
     required this.finalSummariesKr,
+    required this.detailedSummaries,
     required this.top3Sentences,
     required this.marketSentiment,
     required this.stockTheme,
@@ -20,10 +22,26 @@ class DailyReportModel {
   });
 
   factory DailyReportModel.fromJson(Map<String, dynamic> json) {
+    final rawSummaries = List<String>.from(json['final_summaries_kr'] ?? []);
+    final List<String> parsedSummaries = [];
+    final List<String> parsedDetailed = [];
+
+    for (final s in rawSummaries) {
+      if (s.contains('||')) {
+        final parts = s.split('||');
+        parsedSummaries.add(parts[0].trim());
+        parsedDetailed.add(parts[1].trim());
+      } else {
+        parsedSummaries.add(s);
+        parsedDetailed.add(s);
+      }
+    }
+
     return DailyReportModel(
       reportId: json['report_id'] ?? 0,
       reportDate: json['report_date'] ?? '',
-      finalSummariesKr: List<String>.from(json['final_summaries_kr'] ?? []),
+      finalSummariesKr: parsedSummaries,
+      detailedSummaries: parsedDetailed,
       top3Sentences: List<String>.from(json['top_3_sentences'] ?? []),
       marketSentiment: json['market_sentiment'] ?? '보통',
       stockTheme: json['stock_theme'] ?? '',

@@ -98,14 +98,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (fullReport != null) {
         final summaries = fullReport.finalSummariesKr.take(2).toList();
-        cards = summaries
-            .map(
-              (summary) => NewsCardData(
-                country: '글로벌',
-                category: '국제',
-                title: summary,
-                summary: summary,
-              ),
+        final detailedSummaries = fullReport.detailedSummaries.take(2).toList();
+        cards = summaries.asMap().entries.map(
+              (entry) {
+                final index = entry.key;
+                final summary = entry.value;
+                final detailed = detailedSummaries.length > index ? detailedSummaries[index] : summary;
+                return NewsCardData(
+                  country: '글로벌',
+                  category: '국제',
+                  title: summary,
+                  summary: detailed,
+                );
+              },
             )
             .toList();
         mainSentences = fullReport.top3Sentences;
