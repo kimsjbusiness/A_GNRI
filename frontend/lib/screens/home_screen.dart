@@ -185,6 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       context,
                       entry.value,
                       provider.imageAt(entry.key),
+                      insightData['mood'] as String,
                     ),
                   ),
                 ),
@@ -215,6 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
     BuildContext context,
     NewsCardData card,
     Uint8List? imageBytes,
+    String mood,
   ) {
     showModalBottomSheet(
       context: context,
@@ -222,6 +224,23 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) {
         final sheetColors = context.colors;
+        final Color badgeBg;
+        final Color badgeColor;
+        final IconData badgeIcon;
+        if (mood == '어두움') {
+          badgeBg = const Color(0xFFFFEBEE);
+          badgeColor = const Color(0xFFE53935);
+          badgeIcon = Icons.trending_down;
+        } else if (mood == '보통') {
+          badgeBg = const Color(0xFFFFF8E1);
+          badgeColor = const Color(0xFFFFA000);
+          badgeIcon = Icons.trending_flat;
+        } else {
+          badgeBg = const Color(0xFFE8F7EC);
+          badgeColor = const Color(0xFF27AE60);
+          badgeIcon = Icons.trending_up;
+        }
+
         return Container(
           decoration: BoxDecoration(
             color: sheetColors.background,
@@ -278,24 +297,24 @@ class _HomeScreenState extends State<HomeScreen> {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFE8F7EC),
+                                color: badgeBg,
                                 borderRadius: BorderRadius.circular(999),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    Icons.trending_up,
+                                    badgeIcon,
                                     size: 14,
-                                    color: Color(0xFF27AE60),
+                                    color: badgeColor,
                                   ),
-                                  SizedBox(width: 5),
+                                  const SizedBox(width: 5),
                                   Text(
-                                    '밝음',
+                                    mood,
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
-                                      color: Color(0xFF27AE60),
+                                      color: badgeColor,
                                     ),
                                   ),
                                 ],
